@@ -27,10 +27,15 @@ Node.js + Express + PostgreSQL backend application that simulates a fintech onbo
 ## Architecture
 
 src/
+
   ├── routes/
+
   ├── controllers/
+  
   ├── services/
+  
   ├── middleware/
+  
   └── db/
 
 ## API Endpoints
