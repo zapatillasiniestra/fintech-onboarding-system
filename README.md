@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# fintech-onboarding-system
-Node.js, Express and PostgreSQL backend simulating a fintech onboarding workflow with JWT authentication and user-scoped data access.
-=======
 # Fintech Onboarding System API
 
 Node.js + Express + PostgreSQL backend application that simulates a fintech onboarding workflow.
@@ -27,27 +23,21 @@ Node.js + Express + PostgreSQL backend application that simulates a fintech onbo
 
 ## Architecture
 
+```
 src/
-
 ├── routes/
-
 ├── controllers/
-
 ├── services/
-
 ├── middleware/
-
 └── db/
+```
 
 ## API Endpoints
 
-POST /register
-
-POST /login
-
-GET /applications
-
-POST /applications
+- POST /register
+- POST /login
+- GET /applications
+- POST /applications
 
 ## Security
 
@@ -56,9 +46,9 @@ POST /applications
 - User-scoped data access
 - Parameterized SQL queries
 
-## Run locally
+## Run Locally
 
+```bash
 npm install
-
 npm start
->>>>>>> e3a591c (Initial fintech onboarding system)
+```
