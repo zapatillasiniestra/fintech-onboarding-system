@@ -1,6 +1,6 @@
 # Fintech Onboarding System API
 
-Node.js + Express + PostgreSQL backend application that simulates a fintech onboarding workflow.
+Node.js, Express and PostgreSQL backend simulating a fintech onboarding workflow with JWT authentication and user-scoped data access.
 
 ## Features
 
