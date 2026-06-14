@@ -1,11 +1,11 @@
-const express = require("express");
+const express=require("express");
+const authRoutes=require("./routes/auth.routes");
+const applicationsRoutes=require("./routes/applications.routes");
 
-const tasksRoutes = require("./routes/tasks.routes");
-
-const app = express();
+const app=express();
 
 app.use(express.json());
+app.use("/",authRoutes);
+app.use("/applications",applicationsRoutes);
 
-app.use("/tasks", tasksRoutes);
-
-module.exports = app;
+module.exports=app;

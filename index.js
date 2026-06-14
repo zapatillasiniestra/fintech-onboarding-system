@@ -1,5 +1,5 @@
 const express = require("express");
-const pool = require("./db");
+const pool = require("./db/db.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -35,10 +35,10 @@ function auth(req, res, next) {
     }
   }
 
-app.get("/tasks", auth, async (req, res) => {
+app.get("/applications", auth, async (req, res) => {
   const result = await pool.query(
     `SELECT *
-    FROM tasks
+    FROM applications
     WHERE user_id = $1`,
     [req.user.userId]
   );
@@ -46,7 +46,7 @@ app.get("/tasks", auth, async (req, res) => {
   res.json(result.rows);
 });
 
-app.post("/tasks", auth, async (req, res) => {
+app.post("/applications", auth, async (req, res) => {
     if (!req.body?.title) {
         return res.status(400).json({
           error: "title is required"
@@ -55,7 +55,7 @@ app.post("/tasks", auth, async (req, res) => {
   const { title } = req.body;
 
   const result = await pool.query(
-    `INSERT INTO tasks (title, user_id)
+    `INSERT INTO applications (title, user_id)
     VALUES ($1, $2)
     RETURNING *`,
     [title, req.user.userId]
@@ -64,11 +64,11 @@ app.post("/tasks", auth, async (req, res) => {
   res.json(result.rows[0]);
 });
 
-app.delete("/tasks/:id", async (req, res) => {
+app.delete("/applications/:id", async (req, res) => {
   const { id } = req.params;
 
   await pool.query(
-    "DELETE FROM tasks WHERE id = $1",
+    "DELETE FROM applications WHERE id = $1",
     [id]
   );
 
