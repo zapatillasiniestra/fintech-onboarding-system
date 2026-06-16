@@ -6,6 +6,12 @@ async function getApplications(req, res) {
   res.json(applications);
 }
 
+async function getAllApplications(req, res) {
+  console.log(req.user);
+  const applications = await applicationsService.getAllApplications(req.user.userId);
+  res.json(applications);
+}
+
 async function getApplicationsById(req, res) {
   console.log(req.params.id);
   const applications = await applicationsService.getApplicationsById(req.params.id);
@@ -54,6 +60,7 @@ async function updateStatus(req, res) {
 
 module.exports = {
   getApplications,
+  getAllApplications,
   getApplicationsById,
   getStats,
   createApplication,

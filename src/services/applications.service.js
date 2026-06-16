@@ -9,6 +9,14 @@ async function getApplications(userId) {
   return result.rows;
 }
 
+async function getAllApplications() {
+  const result = await pool.query(
+    "SELECT * FROM applications"
+  );
+
+  return result.rows;
+}
+
 async function getApplicationsById(userId) {
   const result = await pool.query(
     "SELECT * FROM applications WHERE id = $1",
@@ -40,7 +48,7 @@ async function getStats(userId) {
   return stats;
 }
 
-async function createApplication(userId, email, full_name) {
+async function createApplication(userId, full_name, email) {
   const result = await pool.query(
     `
     INSERT INTO applications (user_id, full_name, email)
@@ -70,6 +78,7 @@ async function updateStatus(id, userId, status) {
 
 module.exports = {
   getApplications,
+  getAllApplications,
   getApplicationsById,
   getStats,
   createApplication,

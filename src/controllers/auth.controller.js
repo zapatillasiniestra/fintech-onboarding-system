@@ -43,11 +43,13 @@ async function login(req,res){
     }
 
     const result=await pool.query(
-      "SELECT id,email,password FROM users WHERE email=$1",
+      "SELECT id,email,password,role FROM users WHERE email=$1",
       [email]
     );
 
     const user=result.rows[0];
+
+    console.log("user",user);
 
     if(!user){
       return res.status(401).json({error:"invalid credentials"});
@@ -59,12 +61,15 @@ async function login(req,res){
       return res.status(401).json({error:"invalid credentials"});
     }
 
-    const token=jwt.sign(
-      {userId:user.id,email:user.email},
-      SECRET,
-      {expiresIn:"1d"}
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role
+      },
+      "super-secret-key",
+      { expiresIn: "1d" }
     );
-
     res.json({token});
   }catch(err){
     res.status(500).json({error:"server error"});
