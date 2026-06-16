@@ -6,13 +6,30 @@ async function getApplications(req, res) {
   res.json(applications);
 }
 
+async function getApplicationsById(req, res) {
+  console.log(req.params.id);
+  const applications = await applicationsService.getApplicationsById(req.params.id);
+  res.json(applications);
+}
+
+async function getStats(req, res) {
+  console.log(req.user);
+  const applications = await applicationsService.getStats(req.user.userId);
+  res.json(applications);
+}
+
 async function createApplication(req, res) {
   const { full_name, email } = req.body;
 
-  if (!full_name) {
+  if (!full_name||!email) {
     return res.status(400).json({ error: "data is required" });
   }
 
+  const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!pattern.test(email)) {
+      return res.status(400).json({ error: "invalid email" });
+    };
+  
   const application = await applicationsService.createApplication(
     req.user.userId,
     full_name,
@@ -37,6 +54,8 @@ async function updateStatus(req, res) {
 
 module.exports = {
   getApplications,
+  getApplicationsById,
+  getStats,
   createApplication,
   updateStatus
 };

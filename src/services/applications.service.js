@@ -9,6 +9,37 @@ async function getApplications(userId) {
   return result.rows;
 }
 
+async function getApplicationsById(userId) {
+  const result = await pool.query(
+    "SELECT * FROM applications WHERE id = $1",
+    [userId]
+  );
+
+  return result.rows;
+}
+
+async function getStats(userId) {
+  const result = await pool.query(
+    `
+    SELECT
+      status,
+      COUNT(*) as total
+    FROM applications
+    WHERE user_id = $1
+    GROUP BY status
+    `,
+    [userId]
+  );
+
+  const stats = {};
+
+  for (const row of result.rows) {
+    stats[row.status] = Number(row.total);
+  }
+
+  return stats;
+}
+
 async function createApplication(userId, email, full_name) {
   const result = await pool.query(
     `
@@ -39,6 +70,8 @@ async function updateStatus(id, userId, status) {
 
 module.exports = {
   getApplications,
+  getApplicationsById,
+  getStats,
   createApplication,
   updateStatus
 };
