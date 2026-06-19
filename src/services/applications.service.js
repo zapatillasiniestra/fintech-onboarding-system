@@ -39,13 +39,41 @@ async function getStats(userId) {
     [userId]
   );
 
-  const stats = {};
+  let stats = {};
+  let approved = 0;
+  let rejected = 0;
 
   for (const row of result.rows) {
     stats[row.status] = Number(row.total);
+    if (row.status === "approved") {
+      approved = Number(row.total);
+    }
+
+    if (row.status === "rejected") {
+      rejected = Number(row.total);
+    }
+    if (approved + rejected > 0) {
+      stats.approvalRate =
+        approved / (approved + rejected) * 100;
+    } else {
+      stats.approvalRate = 0;
+    }
   }
+  console.log("stats",stats);
 
   return stats;
+}
+
+async function getRecents() {
+  const result = await pool.query(
+    `
+    SELECT * FROM applications
+    ORDER BY id DESC
+    LIMIT 3
+    `
+  );
+
+  return result.rows;
 }
 
 async function createApplication(userId, full_name, email) {
@@ -62,15 +90,36 @@ async function createApplication(userId, full_name, email) {
 }
 
 async function updateStatus(id, userId, status) {
+  const existing = await pool.query(
+    `
+    SELECT status
+    FROM applications
+    WHERE id = $1
+    `,
+    [id]
+  );
+
+  if (existing.rows.length === 0) {
+    throw new Error("application not found");
+  }
+
+  const currentStatus = existing.rows[0].status;
+
+  if (
+    currentStatus === "approved" ||
+    currentStatus === "rejected"
+  ) {
+    throw new Error("application already finalized");
+  }
+
   const result = await pool.query(
     `
     UPDATE applications
     SET status = $1
     WHERE id = $2
-    AND user_id = $3
     RETURNING *
     `,
-    [status, id, userId]
+    [status, id]
   );
 
   return result.rows[0];
@@ -81,6 +130,7 @@ module.exports = {
   getAllApplications,
   getApplicationsById,
   getStats,
+  getRecents,
   createApplication,
   updateStatus
 };

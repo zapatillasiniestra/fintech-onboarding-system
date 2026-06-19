@@ -24,6 +24,12 @@ async function getStats(req, res) {
   res.json(applications);
 }
 
+async function getRecents(req, res) {
+  console.log(req.user);
+  const applications = await applicationsService.getRecents(req.user.userId);
+  res.json(applications);
+}
+
 async function createApplication(req, res) {
   const { full_name, email } = req.body;
 
@@ -46,23 +52,72 @@ async function createApplication(req, res) {
 }
 
 async function updateStatus(req, res) {
-  const { id } = req.params;
-  const { status } = req.body;
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
 
-  const application = await applicationsService.updateStatus(
-    id,
-    req.user.userId,
-    status
-  );
+    const validStatuses = [
+      "pending",
+      "under_review",
+      "approved",
+      "rejected"
+    ];
 
-  res.json(application);
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        error: "invalid status"
+      });
+    }
+
+    const application =
+      await applicationsService.updateStatus(
+        id,
+        req.user.userId,
+        status
+      );
+
+    return res.json(application);
+
+  } catch (err) {
+    console.error("UPDATE STATUS ERROR:", err);
+    return res.status(500).json({
+      error: err.message
+    });
+  }
 }
+
+// async function updateStatus(req, res) {
+//   const { id } = req.params;
+//   const { status } = req.body;
+
+//   const validStatuses = [
+//     "pending",
+//     "under_review",
+//     "approved",
+//     "rejected"
+//   ];
+
+//   if(!validStatuses.includes(status)){
+//     return res.status(400).json({
+//       error: "invalid status"
+//     });
+//   }
+
+//   const application = await applicationsService.updateStatus(
+//     id,
+//     req.user.userId,
+//     status
+//   );
+
+//   res.json(application);
+// }
 
 module.exports = {
   getApplications,
   getAllApplications,
   getApplicationsById,
   getStats,
+  getRecents,
   createApplication,
   updateStatus
 };

@@ -49,8 +49,6 @@ async function login(req,res){
 
     const user=result.rows[0];
 
-    console.log("user",user);
-
     if(!user){
       return res.status(401).json({error:"invalid credentials"});
     }
