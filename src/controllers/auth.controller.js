@@ -70,6 +70,7 @@ async function login(req,res){
     );
     res.json({token});
   }catch(err){
+    console.error("LOGIN ERROR:", err);
     res.status(500).json({error:"server error"});
   }
 }

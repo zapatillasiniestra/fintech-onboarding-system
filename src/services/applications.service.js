@@ -59,7 +59,6 @@ async function getStats(userId) {
       stats.approvalRate = 0;
     }
   }
-  console.log("stats",stats);
 
   return stats;
 }

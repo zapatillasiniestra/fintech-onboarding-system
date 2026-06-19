@@ -88,8 +88,6 @@ describe("auth routes", () => {
             status:"approved"
       });
 
-  console.log(response.status);
-  console.log(response.body);
     expect(response.status).toBe(200);
   });
 });
