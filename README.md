@@ -1,82 +1,146 @@
-# Fintech Onboarding System API
+# Tasks API
 
-A backend system simulating a fintech onboarding workflow built with Node.js, Express, and PostgreSQL.  
-Implements authentication, user-scoped data access, and a simple onboarding status pipeline.
+A REST API built with Node.js, Express, and PostgreSQL, fully containerized with Docker and tested with Jest + CI pipeline.
 
---------------
-
-## Overview
-
-This project models a basic fintech onboarding flow where users can register, authenticate, and manage their own onboarding applications.
-Each application is tied to a specific user and can move through different workflow states (e.g. pending, under_review, approved).
-
---------------
+---
 
 ## Features
 
-- User registration and login system
-- JWT-based authentication
-- Password hashing with bcrypt
-- User-scoped application access (authorization layer)
-- Application lifecycle status tracking
-- RESTful API design
-- Layered architecture (routes, controllers, services, middleware)
-- PostgreSQL relational database with parameterized queries
+* User registration & login (JWT authentication)
+* Role-based authorization (admin/user)
+* Application status workflow (pending → approved/rejected)
+* PostgreSQL database integration
+* Dockerized environment
+* Automated tests (Jest + Supertest)
+* CI pipeline with GitHub Actions
 
---------------
+---
 
-## Tech Stack
+## Run with Docker
 
-- Node.js
-- Express.js
-- PostgreSQL
-- JSON Web Tokens (JWT)
-- bcrypt
+```bash
+docker compose up --build
+```
 
---------------
+API runs on:
 
-## Architecture
+```
+http://localhost:3000
+```
 
-src/
-├── routes/ # API route definitions
-├── controllers/ # Request handlers
-├── services/ # Business logic + DB queries
-├── middleware/ # Auth & request validation
-└── db/ # Database connection pool
-
---------------
+---
 
 ## API Endpoints
 
-### Auth
+### Register
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /register | Create a new user |
-| POST | /login | Authenticate user and return JWT |
+```http
+POST /register
+```
 
-### Applications
+```json
+{
+  "email": "user@example.com",
+  "password": "123456"
+}
+```
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /applications | Get user applications |
-| POST | /applications | Create new application |
-| PATCH | /applications/:id/status | Update application status |
+---
 
---------------
+### Login
 
-## Security Model
+```http
+POST /login
+```
 
-- Passwords are hashed using bcrypt before storage
-- JWT tokens are used for authentication
-- Middleware validates token on protected routes
-- Users can only access their own data (user-scoped queries)
-- SQL queries use parameterized inputs to prevent injection
+```json
+{
+  "email": "user@example.com",
+  "password": "123456"
+}
+```
 
---------------
+Response:
 
-## Run Locally
+```json
+{
+  "token": "jwt_token"
+}
+```
+
+---
+
+### Get Applications
+
+```http
+GET /applications
+```
+
+Requires JWT token:
+
+```
+Authorization: Bearer <token>
+```
+
+---
+
+### Update Application Status (Admin only)
+
+```http
+PATCH /applications/:id/status
+```
+
+```json
+{
+  "status": "approved"
+}
+```
+
+---
+
+## Run Tests
 
 ```bash
-npm install
-npm run start
+npm test
+```
+
+Tests run automatically on every push via GitHub Actions.
+
+---
+
+## Database
+
+PostgreSQL runs in Docker and is initialized with:
+
+* users table
+* applications table
+
+---
+
+## Architecture
+
+* API container (Node.js)
+* Database container (PostgreSQL)
+* Shared Docker network
+
+---
+
+## Screenshots
+
+Add screenshots in `/screenshots` folder:
+
+```md
+![Login](./screenshots/login.png)
+![Register](./screenshots/register.png)
+![Docker](./screenshots/docker-logs.png)
+![CI](./screenshots/ci.png)
+```
+
+---
+
+## Future Improvements
+
+* Swagger documentation
+* Pagination & filtering
+* Refresh tokens
+* Deployment (Render / Railway)
