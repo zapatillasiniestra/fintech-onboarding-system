@@ -30,6 +30,7 @@ async function register(req,res){
 
     res.status(201).json(result.rows[0]);
   }catch(err){
+    console.log("server error:",err);
     res.status(500).json({error:"server error"});
   }
 }
