@@ -135,12 +135,3 @@ Add screenshots in `/screenshots` folder:
 ![Docker](./screenshots/docker-logs.png)
 ![CI](./screenshots/ci.png)
 ```
-
----
-
-## Future Improvements
-
-* Swagger documentation
-* Pagination & filtering
-* Refresh tokens
-* Deployment (Render / Railway)
