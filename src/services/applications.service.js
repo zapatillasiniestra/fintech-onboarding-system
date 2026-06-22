@@ -1,12 +1,69 @@
 const pool = require("../db/db.js");
 
-async function getApplications(userId) {
-  const result = await pool.query(
-    "SELECT * FROM applications WHERE user_id = $1",
-    [userId]
-  );
+async function getApplications(userId, page=1, limit=10, status, search, order) {
+  const offset = (page - 1) * limit;
 
-  return result.rows;
+  let filters = ["user_id = $1"];
+  let values = [userId];
+  let i = 2;
+
+  if (status) {
+    filters.push(`status = $${i}`);
+    values.push(status);
+    i++;
+  }
+
+  if (search) {
+    filters.push(`(
+      full_name ILIKE $${i}
+      OR email ILIKE $${i}
+    )`);
+    values.push(`%${search}%`);
+    i++;
+  }
+
+  let sorting = "DESC";
+
+  if (order) {
+    if(order=="asc"){
+      sorting="ASC";
+    }else{
+      sorting="DESC";
+    };
+  }
+
+  const whereClause = filters.join(" AND ");
+
+  const countQuery = `
+    SELECT COUNT(*)
+    FROM applications
+    WHERE ${whereClause}
+  `;
+
+  const countResult = await pool.query(countQuery, values);
+  const total = parseInt(countResult.rows[0].count);
+
+  const dataQuery = `
+    SELECT *
+    FROM applications
+    WHERE ${whereClause}
+    ORDER BY created_at ${sorting}
+    LIMIT $${i} OFFSET $${i + 1}
+  `;
+
+  const dataResult = await pool.query(dataQuery, [
+    ...values,
+    limit,
+    offset
+  ]);
+
+  return {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+    data: dataResult.rows
+  };
 }
 
 async function getAllApplications() {

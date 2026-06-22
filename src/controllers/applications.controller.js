@@ -2,7 +2,20 @@ const applicationsService = require("../services/applications.service");
 
 async function getApplications(req, res) {
   console.log(req.user);
-  const applications = await applicationsService.getApplications(req.user.userId);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const status = req.query.status;
+  const search = req.query.search;
+  const order = req.query.order;
+
+  const applications = await applicationsService.getApplications(
+    req.user.userId,
+    page,
+    limit,
+    status,
+    search,
+    order
+  );
   res.json(applications);
 }
 
