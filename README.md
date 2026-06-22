@@ -10,6 +10,7 @@ A REST API built with Node.js, Express, and PostgreSQL, fully containerized with
 * Role-based authorization (admin/user)
 * Application status workflow (pending → approved/rejected)
 * PostgreSQL database integration
+* Query system with pagination, filtering, sorting and search
 * Dockerized environment
 * Automated tests (Jest + Supertest)
 * CI pipeline with GitHub Actions
