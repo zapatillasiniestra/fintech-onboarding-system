@@ -26,4 +26,6 @@ jobs:
         run: npm install
 
       - name: Run tests
+        env:
+          JWT_SECRET: test-secret
         run: npm test
