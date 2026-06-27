@@ -85,7 +85,7 @@ async function updateStatus(req, res) {
     const application =
       await applicationsService.updateStatus(
         id,
-        req.user.userId,
+        // req.user.userId,
         status
       );
 
