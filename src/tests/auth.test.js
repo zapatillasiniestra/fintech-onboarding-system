@@ -1,3 +1,4 @@
+require("dotenv").config();
 const request = require("supertest");
 const app = require("../app");
 const jwt = require("jsonwebtoken");
@@ -49,7 +50,7 @@ describe("auth routes", () => {
         userId: 1,
         role: "user"
     },
-      "super-secret-key"
+      process.env.JWT_SECRET
     );
 
     const response = await request(app)
@@ -76,7 +77,7 @@ describe("auth routes", () => {
         userId: 7,
         role: "admin"
     },
-      "super-secret-key"
+      process.env.JWT_SECRET
     );
 
     const response = await request(app)

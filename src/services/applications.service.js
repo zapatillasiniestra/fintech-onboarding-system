@@ -145,7 +145,7 @@ async function createApplication(userId, full_name, email) {
   return result.rows[0];
 }
 
-async function updateStatus(id, userId, status) {
+async function updateStatus(id, status) {
   const existing = await pool.query(
     `
     SELECT status
@@ -166,6 +166,17 @@ async function updateStatus(id, userId, status) {
     currentStatus === "rejected"
   ) {
     throw new Error("application already finalized");
+  }
+
+  const allowedTransitions = {
+    pending: ["under_review"],
+    under_review: ["approved", "rejected"],
+    approved: [],
+    rejected: []
+  }
+
+  if (!allowedTransitions[currentStatus].includes(status)) {
+    throw new Error("invalid status transition");
   }
 
   const result = await pool.query(

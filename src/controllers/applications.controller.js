@@ -99,32 +99,6 @@ async function updateStatus(req, res) {
   }
 }
 
-// async function updateStatus(req, res) {
-//   const { id } = req.params;
-//   const { status } = req.body;
-
-//   const validStatuses = [
-//     "pending",
-//     "under_review",
-//     "approved",
-//     "rejected"
-//   ];
-
-//   if(!validStatuses.includes(status)){
-//     return res.status(400).json({
-//       error: "invalid status"
-//     });
-//   }
-
-//   const application = await applicationsService.updateStatus(
-//     id,
-//     req.user.userId,
-//     status
-//   );
-
-//   res.json(application);
-// }
-
 module.exports = {
   getApplications,
   getAllApplications,

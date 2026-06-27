@@ -1,8 +1,7 @@
+require("dotenv").config();
 const pool=require("../db/db.js");
 const bcrypt=require("bcrypt");
 const jwt=require("jsonwebtoken");
-
-const SECRET="super-secret-key";
 
 async function register(req,res){
   try{
@@ -66,7 +65,7 @@ async function login(req,res){
         email: user.email,
         role: user.role
       },
-      "super-secret-key",
+      process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
     res.json({token});
