@@ -1,5 +1,28 @@
 const applicationsService = require("../services/applications.service");
 
+/**
+ * @swagger
+ * /applications:
+ *   get:
+ *     summary: Get paginated applications
+ *     tags:
+ *       - Applications
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of applications
+ */
+
 async function getApplications(req, res) {
   console.log(req.user);
   const page = parseInt(req.query.page) || 1;

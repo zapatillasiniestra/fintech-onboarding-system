@@ -15,7 +15,16 @@ const options = {
       {
         url: "https://fintech-onboarding-system.onrender.com"
       }
-    ]
+    ],
+    components: {
+        securitySchemes: {
+            bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT"
+            }
+        }
+    },
   },
   apis: ["./src/routes/*.js"]
 };
