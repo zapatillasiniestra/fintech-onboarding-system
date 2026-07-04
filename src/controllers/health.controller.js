@@ -8,3 +8,5 @@ async function health(req, res, next) {
     next(err);
   }
 }
+
+module.exports = {healthController};
