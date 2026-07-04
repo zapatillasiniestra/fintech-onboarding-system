@@ -68,8 +68,6 @@ async function getRecents(req, res) {
 }
 
 async function createApplication(req, res) {
-  const { full_name, email } = req.body;
-
   const {
     createApplicationSchema
   } = require("../validators/applications.validator");
