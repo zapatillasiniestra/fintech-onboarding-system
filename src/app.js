@@ -1,7 +1,7 @@
 const express=require("express");
 const authRoutes=require("./routes/auth.routes");
 const applicationsRoutes=require("./routes/applications.routes");
-const errorHandler=equire("./middleware/error.middleware");
+const errorHandler=require("./middleware/error.middleware");
 const requestLogger = require("./middleware/logger.middleware");
 
 const app=express();
