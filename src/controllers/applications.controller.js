@@ -97,7 +97,6 @@ async function createApplication(req, res) {
 async function updateStatus(req, res, next) {
   try {
     const { id } = req.params;
-    const { status } = req.body;
 
     // const validStatuses = STATUS;
 
