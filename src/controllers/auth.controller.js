@@ -5,8 +5,6 @@ const jwt=require("jsonwebtoken");
 
 async function register(req,res){
   try{
-    const{email,password}=req.body;
-
     const {
       createApplicationSchema
     } = require("../validators/auth.validator");
@@ -15,9 +13,6 @@ async function register(req,res){
     createApplicationSchema.parse(req.body);
 
     const { email, password } = data;
-    // if(!email||!password){
-    //   return res.status(400).json({error:"email and password are required"});
-    // }
 
     const existing=await pool.query(
       "SELECT id FROM users WHERE email=$1",
@@ -89,6 +84,5 @@ async function login(req, res, next){
 
 module.exports={
   register,
-  login,
-  health
+  login
 };
