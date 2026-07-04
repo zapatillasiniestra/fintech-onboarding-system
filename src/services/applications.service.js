@@ -1,106 +1,69 @@
 const pool = require("../db/db.js");
+const repository =
+  require("../repositories/applications.repository");
+const AppError =
+  require("../utils/AppError");
 
-async function getApplications(userId, page=1, limit=10, status, search, order) {
+async function getApplications(userId, page = 1, limit = 10, status, search, order) {
   const offset = (page - 1) * limit;
 
-  let filters = ["user_id = $1"];
-  let values = [userId];
-  let i = 2;
-
-  if (status) {
-    filters.push(`status = $${i}`);
-    values.push(status);
-    i++;
-  }
-
-  if (search) {
-    filters.push(`(
-      full_name ILIKE $${i}
-      OR email ILIKE $${i}
-    )`);
-    values.push(`%${search}%`);
-    i++;
-  }
-
-  let sorting = "DESC";
-
-  if (order) {
-    if(order=="asc"){
-      sorting="ASC";
-    }else{
-      sorting="DESC";
-    };
-  }
-
-  const whereClause = filters.join(" AND ");
-
-  const countQuery = `
-    SELECT COUNT(*)
-    FROM applications
-    WHERE ${whereClause}
-  `;
-
-  const countResult = await pool.query(countQuery, values);
-  const total = parseInt(countResult.rows[0].count);
-
-  const dataQuery = `
-    SELECT *
-    FROM applications
-    WHERE ${whereClause}
-    ORDER BY created_at ${sorting}
-    LIMIT $${i} OFFSET $${i + 1}
-  `;
-
-  const dataResult = await pool.query(dataQuery, [
-    ...values,
-    limit,
-    offset
-  ]);
+  const result =
+    await repository.getApplications(userId, limit, offset, status, search, order);
 
   return {
     page,
     limit,
-    total,
-    totalPages: Math.ceil(total / limit),
-    data: dataResult.rows
+    total: result.total,
+    totalPages: Math.ceil( result.total / limit ),
+    data: result.applications
   };
 }
 
 async function getAllApplications() {
-  const result = await pool.query(
-    "SELECT * FROM applications"
-  );
+    const applications =
+      await repository.findAll();
+
+    if (!applications) {
+      throw new AppError(
+        "applications not found",
+        404
+      );
+    }
 
   return result.rows;
 }
 
 async function getApplicationsById(userId) {
-  const result = await pool.query(
-    "SELECT * FROM applications WHERE id = $1",
-    [userId]
-  );
+
+    const application =
+      await repository.findById(userId);
+
+    if (!application) {
+      throw new AppError(
+        "application not found",
+        404
+      );
+    }
 
   return result.rows;
 }
 
 async function getStats(userId) {
-  const result = await pool.query(
-    `
-    SELECT
-      status,
-      COUNT(*) as total
-    FROM applications
-    WHERE user_id = $1
-    GROUP BY status
-    `,
-    [userId]
-  );
+  const application =
+    await repository.getStats(userId);
+
+  if (!application) {
+    throw new AppError(
+      "data not found",
+      404
+    );
+  }
 
   let stats = {};
   let approved = 0;
   let rejected = 0;
 
-  for (const row of result.rows) {
+  for (const row of application.rows) {
     stats[row.status] = Number(row.total);
     if (row.status === "approved") {
       approved = Number(row.total);
@@ -121,75 +84,82 @@ async function getStats(userId) {
 }
 
 async function getRecents() {
-  const result = await pool.query(
-    `
-    SELECT * FROM applications
-    ORDER BY id DESC
-    LIMIT 3
-    `
-  );
+  const result =
+    await repository.getRecents();
+
+  if (!result) {
+    throw new AppError(
+      "data not found",
+      404
+    );
+  }
 
   return result.rows;
 }
 
 async function createApplication(userId, full_name, email) {
-  const result = await pool.query(
-    `
-    INSERT INTO applications (user_id, full_name, email)
-    VALUES ($1, $2, $3)
-    RETURNING *
-    `,
-    [userId, full_name, email]
-  );
+  const result =
+    await repository.create(userId, full_name, email);
+
+  if (!result) {
+    throw new AppError(
+      "data not found",
+      404
+    );
+  }
 
   return result.rows[0];
 }
 
 async function updateStatus(id, status) {
-  const existing = await pool.query(
-    `
-    SELECT status
-    FROM applications
-    WHERE id = $1
-    `,
-    [id]
-  );
 
-  if (existing.rows.length === 0) {
-    throw new Error("application not found");
+  const application =
+    await repository.findById(id);
+
+  if (!application) {
+    throw new AppError(
+      "application not found",
+      404
+    );
   }
 
-  const currentStatus = existing.rows[0].status;
+  const currentStatus =
+    application.status;
 
   if (
     currentStatus === "approved" ||
     currentStatus === "rejected"
   ) {
-    throw new Error("application already finalized");
+    throw new AppError(
+      "application already finalized",
+      400
+    );
   }
 
   const allowedTransitions = {
     pending: ["under_review"],
-    under_review: ["approved", "rejected"],
+    under_review: [
+      "approved",
+      "rejected"
+    ],
     approved: [],
     rejected: []
+  };
+
+  if (
+    !allowedTransitions[currentStatus]
+      .includes(status)
+  ) {
+    throw new AppError(
+      "invalid status transition",
+      400
+    );
   }
 
-  if (!allowedTransitions[currentStatus].includes(status)) {
-    throw new Error("invalid status transition");
-  }
-
-  const result = await pool.query(
-    `
-    UPDATE applications
-    SET status = $1
-    WHERE id = $2
-    RETURNING *
-    `,
-    [status, id]
+  return repository.updateStatus(
+    id,
+    status
   );
-
-  return result.rows[0];
 }
 
 module.exports = {

@@ -7,9 +7,17 @@ async function register(req,res){
   try{
     const{email,password}=req.body;
 
-    if(!email||!password){
-      return res.status(400).json({error:"email and password are required"});
-    }
+    const {
+      createApplicationSchema
+    } = require("../validators/auth.validator");
+
+    const data =
+    createApplicationSchema.parse(req.body);
+
+    const { email, password } = data;
+    // if(!email||!password){
+    //   return res.status(400).json({error:"email and password are required"});
+    // }
 
     const existing=await pool.query(
       "SELECT id FROM users WHERE email=$1",
@@ -34,13 +42,18 @@ async function register(req,res){
   }
 }
 
-async function login(req,res){
+async function login(req, res, next){
   try{
     const{email,password}=req.body;
 
-    if(!email||!password){
-      return res.status(400).json({error:"email and password are required"});
-    }
+    const {
+      createApplicationSchema
+    } = require("../validators/auth.validator");
+
+    const data =
+    createApplicationSchema.parse(req.body);
+
+    const { email, password } = data;
 
     const result=await pool.query(
       "SELECT id,email,password,role FROM users WHERE email=$1",
@@ -69,10 +82,13 @@ async function login(req,res){
       { expiresIn: "1d" }
     );
     res.json({token});
-  }catch(err){
-    console.error("LOGIN ERROR:", err);
-    res.status(500).json({error:"server error"});
+  } catch(err) {
+    next(err);
   }
 }
 
-module.exports={register,login};
+module.exports={
+  register,
+  login,
+  health
+};

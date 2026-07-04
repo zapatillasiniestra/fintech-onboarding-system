@@ -1,4 +1,5 @@
 const applicationsService = require("../services/applications.service");
+const STATUS = require("../constants/applicationStatus");
 
 /**
  * @swagger
@@ -69,14 +70,22 @@ async function getRecents(req, res) {
 async function createApplication(req, res) {
   const { full_name, email } = req.body;
 
-  if (!full_name||!email) {
-    return res.status(400).json({ error: "data is required" });
-  }
+  const {
+    createApplicationSchema
+  } = require("../validators/applications.validator");
 
-  const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!pattern.test(email)) {
-      return res.status(400).json({ error: "invalid email" });
-    };
+  const data =
+  createApplicationSchema.parse(req.body);
+
+  const { full_name, email } = data;
+  // if (!full_name||!email) {
+  //   return res.status(400).json({ error: "data is required" });
+  // }
+
+  // const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  //   if (!pattern.test(email)) {
+  //     return res.status(400).json({ error: "invalid email" });
+  //   };
   
   const application = await applicationsService.createApplication(
     req.user.userId,
@@ -87,23 +96,19 @@ async function createApplication(req, res) {
   res.json(application);
 }
 
-async function updateStatus(req, res) {
+async function updateStatus(req, res, next) {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
-    const validStatuses = [
-      "pending",
-      "under_review",
-      "approved",
-      "rejected"
-    ];
+    // const validStatuses = STATUS;
 
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({
-        error: "invalid status"
-      });
-    }
+    const {
+      updateStatusSchema
+    } = require("../validators/applications.validator");
+
+    const { status } =
+    updateStatusSchema.parse(req.body);
 
     const application =
       await applicationsService.updateStatus(
@@ -114,11 +119,8 @@ async function updateStatus(req, res) {
 
     return res.json(application);
 
-  } catch (err) {
-    console.error("UPDATE STATUS ERROR:", err);
-    return res.status(500).json({
-      error: err.message
-    });
+  } catch(err) {
+    next(err);
   }
 }
 
