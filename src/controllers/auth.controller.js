@@ -39,8 +39,6 @@ async function register(req,res){
 
 async function login(req, res, next){
   try{
-    const{email,password}=req.body;
-
     const {
       createApplicationSchema
     } = require("../validators/auth.validator");
