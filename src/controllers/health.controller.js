@@ -9,4 +9,4 @@ async function health(req, res, next) {
   }
 }
 
-module.exports = {healthController};
+module.exports = {health};
