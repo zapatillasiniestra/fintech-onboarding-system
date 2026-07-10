@@ -3,7 +3,7 @@ const pool=require("../db/db.js");
 const bcrypt=require("bcrypt");
 const jwt=require("jsonwebtoken");
 
-async function register(req,res){
+async function register(req,res,next){
   try{
     const {
       registerSchema
@@ -31,9 +31,8 @@ async function register(req,res){
     );
 
     res.status(201).json(result.rows[0]);
-  }catch(err){
-    console.log("server error:",err);
-    res.status(500).json({error:"server error"});
+  }catch(err) {
+    next(err);
   }
 }
 
