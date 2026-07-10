@@ -98,8 +98,6 @@ async function updateStatus(req, res, next) {
   try {
     const { id } = req.params;
 
-    // const validStatuses = STATUS;
-
     const {
       updateStatusSchema
     } = require("../validators/applications.validator");
@@ -110,9 +108,14 @@ async function updateStatus(req, res, next) {
     const application =
       await applicationsService.updateStatus(
         id,
-        // req.user.userId,
+        req.user.userId,
         status
       );
+    // const application =
+    //   await applicationsService.updateStatus(
+    //     id,
+    //     status
+    //   );
 
     return res.json(application);
 

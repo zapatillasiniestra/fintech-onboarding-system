@@ -12,3 +12,19 @@ CREATE TABLE IF NOT EXISTS applications (
  full_name TEXT,
  email TEXT
 );
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id SERIAL PRIMARY KEY,
+  application_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  action TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+
+  FOREIGN KEY (application_id)
+    REFERENCES applications(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+);

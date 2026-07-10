@@ -111,55 +111,85 @@ async function createApplication(userId, full_name, email) {
   return result.rows[0];
 }
 
-async function updateStatus(id, status) {
+async function updateStatus(applicationId, adminUserId, status) {
+  const client = await pool.connect();
 
-  const application =
-    await repository.findById(id);
+  try {
+    await client.query("BEGIN");
 
-  if (!application) {
-    throw new AppError(
-      "application not found",
-      404
+    const application =
+      await repository.findById(
+        client,
+        applicationId
+      );
+
+    if (!application) {
+      throw new AppError(
+        "application not found",
+        404
+      );
+    }
+
+    const currentStatus = application.status;
+
+    if (
+      currentStatus === "approved" ||
+      currentStatus === "rejected"
+    ) {
+      throw new AppError(
+        "application already finalized",
+        400
+      );
+    }
+
+    const allowedTransitions = {
+      pending: ["under_review"],
+      under_review: [
+        "approved",
+        "rejected"
+      ],
+      approved: [],
+      rejected: []
+    };
+
+    if (
+      !allowedTransitions[currentStatus]
+        .includes(status)
+    ) {
+      throw new AppError(
+        "invalid status transition",
+        400
+      );
+    }
+
+    const updated =
+      await repository.updateStatus(
+        client,
+        applicationId,
+        status
+      );
+
+    await auditRepository.createLog(
+      client,
+      applicationId,
+      adminUserId,
+      status
     );
+
+    await client.query("COMMIT");
+
+    return updated;
+
+  } catch (err) {
+
+    await client.query("ROLLBACK");
+    throw err;
+
+  } finally {
+
+    client.release();
+
   }
-
-  const currentStatus =
-    application.status;
-
-  if (
-    currentStatus === "approved" ||
-    currentStatus === "rejected"
-  ) {
-    throw new AppError(
-      "application already finalized",
-      400
-    );
-  }
-
-  const allowedTransitions = {
-    pending: ["under_review"],
-    under_review: [
-      "approved",
-      "rejected"
-    ],
-    approved: [],
-    rejected: []
-  };
-
-  if (
-    !allowedTransitions[currentStatus]
-      .includes(status)
-  ) {
-    throw new AppError(
-      "invalid status transition",
-      400
-    );
-  }
-
-  return repository.updateStatus(
-    id,
-    status
-  );
 }
 
 module.exports = {

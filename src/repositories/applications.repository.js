@@ -1,7 +1,7 @@
 const pool = require("../db/db");
 
-async function findById(id) {
-  const result = await pool.query(
+async function findById(client, id) {
+  const result = await client.query(
     `
     SELECT *
     FROM applications
@@ -117,8 +117,8 @@ async function getApplications(userId, limit, offset, status, search, order) {
   };
 }
 
-async function updateStatus(id, status) {
-  const result = await pool.query(
+async function updateStatus(client, id, status) {
+  const result = await client.query(
     `
     UPDATE applications
     SET status = $1
