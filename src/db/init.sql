@@ -7,10 +7,14 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS applications (
  id SERIAL PRIMARY KEY,
- user_id INTEGER,
+ user_id INTEGER NOT NULL,
  status TEXT,
  full_name TEXT,
- email TEXT
+ email TEXT,
+
+ FOREIGN KEY (user_id)
+   REFERENCES users(id)
+   ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS audit_logs (
