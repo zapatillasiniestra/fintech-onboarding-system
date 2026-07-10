@@ -6,11 +6,11 @@ const jwt=require("jsonwebtoken");
 async function register(req,res){
   try{
     const {
-      createApplicationSchema
+      registerSchema
     } = require("../validators/auth.validator");
 
     const data =
-    createApplicationSchema.parse(req.body);
+    registerSchema.parse(req.body);
 
     const { email, password } = data;
 
@@ -40,11 +40,11 @@ async function register(req,res){
 async function login(req, res, next){
   try{
     const {
-      createApplicationSchema
+      loginSchema
     } = require("../validators/auth.validator");
 
     const data =
-    createApplicationSchema.parse(req.body);
+    loginSchema.parse(req.body);
 
     const { email, password } = data;
 
