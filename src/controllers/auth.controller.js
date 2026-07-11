@@ -2,6 +2,7 @@ require("dotenv").config();
 const pool=require("../db/db.js");
 const bcrypt=require("bcrypt");
 const jwt=require("jsonwebtoken");
+const authService=require("../repositories/auth.service");
 
 async function register(req,res,next){
   try{
@@ -108,5 +109,6 @@ async function refresh(req, res, next) {
 
 module.exports={
   register,
-  login
+  login,
+  refresh
 };
