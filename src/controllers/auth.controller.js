@@ -64,16 +64,28 @@ async function login(req, res, next){
       return res.status(401).json({error:"invalid credentials"});
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       {
-        userId: user.id,
-        email: user.email,
-        role: user.role
+        userId:user.id,
+        email:user.email,
+        role:user.role
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      {
+        expiresIn:"15m"
+      }
     );
-    res.json({token});
+
+    const refreshToken = jwt.sign(
+      {
+        userId:user.id
+      },
+      process.env.REFRESH_SECRET,
+      {
+        expiresIn:"7d"
+      }
+    );    
+    res.json({accessToken, refreshToken}); 
   } catch(err) {
     next(err);
   }
