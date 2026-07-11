@@ -1,6 +1,6 @@
 require("dotenv").config();
 const jwt=require("jsonwebtoken");
-const repository=require("../repositories/applications.repository");
+const repository=require("../repositories/auth.repository");
 const AppError=require("../utils/AppError");
 
 async function refresh(refreshToken) {
