@@ -91,6 +91,21 @@ async function login(req, res, next){
   }
 }
 
+async function refresh(req, res, next) {
+  try {
+
+    const { refreshToken } = req.body;
+
+    const tokens =
+      await authService.refresh(refreshToken);
+
+    res.json(tokens);
+
+  } catch(err) {
+    next(err);
+  }
+}
+
 module.exports={
   register,
   login
