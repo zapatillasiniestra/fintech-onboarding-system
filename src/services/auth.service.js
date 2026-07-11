@@ -20,15 +20,19 @@ async function refresh(refreshToken) {
             401
         );
     }
+    const user = await repository.findUserById(payload.userId);
     const accessToken = jwt.sign(
-        {
-            userId: payload.userId
-        },
-        process.env.JWT_SECRET,
-        {
-            expiresIn: "15m"
-        }
+    {
+        userId: user.id,
+        email: user.email,
+        role: user.role
+    },
+    process.env.JWT_SECRET,
+    {
+        expiresIn: "15m"
+    }
     );
+    
     return {
         accessToken
     };
