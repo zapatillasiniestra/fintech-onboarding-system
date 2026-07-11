@@ -1,8 +1,7 @@
-const pool = require("../db/db.js");
-const repository =
-  require("../repositories/applications.repository");
-const AppError =
-  require("../utils/AppError");
+const pool=require("../db/db.js");
+const repository=require("../repositories/applications.repository");
+const auditRepository=require("../repositories/audit.repository");
+const AppError=require("../utils/AppError");
 
 async function getApplications(userId, page = 1, limit = 10, status, search, order) {
   const offset = (page - 1) * limit;
