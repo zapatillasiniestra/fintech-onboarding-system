@@ -50,5 +50,6 @@ async function findUserById(id) {
 module.exports = {
   saveRefreshToken,
   findRefreshToken,
-  deleteRefreshToken
+  deleteRefreshToken,
+  findUserById
 };
