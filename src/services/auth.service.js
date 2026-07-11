@@ -20,7 +20,32 @@ async function refresh(refreshToken) {
             401
         );
     }
+
+    await authRepository.deleteRefreshToken(
+        refreshToken
+    );
+
     const user = await repository.findUserById(payload.userId);
+    const newRefreshToken = jwt.sign(
+        {
+            userId: user.id
+        },
+        process.env.REFRESH_SECRET,
+        {
+            expiresIn: "7d"
+        }
+    );
+
+    const expiresAt = new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000
+        );
+
+        await authRepository.saveRefreshToken(
+        user.id,
+        newRefreshToken,
+        expiresAt
+    );
+
     const accessToken = jwt.sign(
     {
         userId: user.id,
@@ -32,11 +57,12 @@ async function refresh(refreshToken) {
         expiresIn: "15m"
     }
     );
-    
-    return {
-        accessToken
-    };
 
+    return {
+        accessToken,
+        refreshToken: newRefreshToken
+    };
+    
 }
 
 module.exports = {
