@@ -34,3 +34,7 @@ async function refresh(refreshToken) {
     };
 
 }
+
+module.exports = {
+  refresh
+};
