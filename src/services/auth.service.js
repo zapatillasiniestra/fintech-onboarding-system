@@ -21,7 +21,7 @@ async function refresh(refreshToken) {
         );
     }
 
-    await authRepository.deleteRefreshToken(
+    await repository.deleteRefreshToken(
         refreshToken
     );
 
@@ -40,7 +40,7 @@ async function refresh(refreshToken) {
         Date.now() + 7 * 24 * 60 * 60 * 1000
         );
 
-        await authRepository.saveRefreshToken(
+        await repository.saveRefreshToken(
         user.id,
         newRefreshToken,
         expiresAt
@@ -62,7 +62,7 @@ async function refresh(refreshToken) {
         accessToken,
         refreshToken: newRefreshToken
     };
-    
+
 }
 
 module.exports = {
