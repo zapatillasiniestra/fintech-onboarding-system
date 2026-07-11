@@ -3,6 +3,7 @@ const pool=require("../db/db.js");
 const bcrypt=require("bcrypt");
 const jwt=require("jsonwebtoken");
 const authService=require("../services/auth.service");
+const authRepository=require("../repositories/auth.repository");
 
 async function register(req,res,next){
   try{
@@ -85,8 +86,20 @@ async function login(req, res, next){
       {
         expiresIn:"7d"
       }
-    );    
+    );
+ 
+    const expiresAt = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000
+    );
+
+    await authRepository.saveRefreshToken(
+      user.id,
+      refreshToken,
+      expiresAt
+    );
+
     res.json({accessToken, refreshToken}); 
+    
   } catch(err) {
     next(err);
   }
