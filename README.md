@@ -1,138 +1,100 @@
-# Tasks API
+# Fintech Onboarding API
 
-A REST API built with Node.js, Express, and PostgreSQL, fully containerized with Docker and tested with Jest + CI pipeline.
+A production-oriented backend service for managing customer onboarding workflows in fintech environments. The project focuses on clean architecture, security, scalability, and maintainability rather than framework-specific implementations.
 
----
-
-## Features
-
-* User registration & login (JWT authentication)
-* Role-based authorization (admin/user)
-* Application status workflow (pending → approved/rejected)
-* PostgreSQL database integration
-* Query system with pagination, filtering, sorting and search
-* Dockerized environment
-* Automated tests (Jest + Supertest)
-* CI pipeline with GitHub Actions
-
----
-
-## Run with Docker
-
-```bash
-docker compose up --build
-```
-
-API runs on:
-
-```
-http://localhost:3000
-```
-
----
-
-## API Endpoints
-
-### Register
-
-```http
-POST /register
-```
-
-```json
-{
-  "email": "user@example.com",
-  "password": "123456"
-}
-```
-
----
-
-### Login
-
-```http
-POST /login
-```
-
-```json
-{
-  "email": "user@example.com",
-  "password": "123456"
-}
-```
-
-Response:
-
-```json
-{
-  "token": "jwt_token"
-}
-```
-
----
-
-### Get Applications
-
-```http
-GET /applications
-```
-
-Requires JWT token:
-
-```
-Authorization: Bearer <token>
-```
-
----
-
-### Update Application Status (Admin only)
-
-```http
-PATCH /applications/:id/status
-```
-
-```json
-{
-  "status": "approved"
-}
-```
-
----
-
-## Run Tests
-
-```bash
-npm test
-```
-
-Tests run automatically on every push via GitHub Actions.
-
----
-
-## Database
-
-PostgreSQL runs in Docker and is initialized with:
-
-* users table
-* applications table
+It models a typical onboarding lifecycle, providing authenticated access, role-based administration, controlled workflow transitions, auditability, and operational tooling expected in modern backend services.
 
 ---
 
 ## Architecture
 
-* API container (Node.js)
-* Database container (PostgreSQL)
-* Shared Docker network
+The application follows a layered architecture that separates HTTP concerns, business rules, and data access.
+
+```text
+Client
+    │
+ REST API
+    │
+Controllers
+    │
+Services
+    │
+Repositories
+    │
+PostgreSQL
+```
+
+This separation keeps business logic independent from infrastructure, making the system easier to test, maintain, and extend.
 
 ---
 
-## Screenshots
+## Core Capabilities
 
-Add screenshots in `/screenshots` folder:
+* Secure authentication and session management
+* Role-based authorization
+* Stateful onboarding workflow with controlled status transitions
+* Search, filtering, sorting and pagination
+* Audit trail for administrative operations
+* API documentation
+* Health monitoring endpoint
+* Automated testing and continuous integration
 
-```md
-![Login](./screenshots/login.png)
-![Register](./screenshots/register.png)
-![Docker](./screenshots/docker-logs.png)
-![CI](./screenshots/ci.png)
+---
+
+## Technology
+
+* Node.js
+* Express
+* PostgreSQL
+* Docker
+* GitHub Actions
+
+---
+
+## Local Development
+
+```bash
+docker compose up --build
+```
+
+The API is available at:
+
+```
+http://localhost:3000
+```
+
+Interactive API documentation:
+
+```
+/docs
+```
+
+---
+
+## Testing
+
+The project includes automated unit and integration tests executed locally with:
+
+```bash
+npm test
+```
+
+Every push and pull request is automatically validated through GitHub Actions.
+
+---
+
+## Repository Structure
+
+```text
+src/
+ ├── constants/
+ ├── controllers/
+ ├── services/
+ ├── repositories/
+ ├── middleware/
+ ├── validators/
+ ├── routes/
+ ├── db/
+ ├── utils/
+ └── tests/
 ```
