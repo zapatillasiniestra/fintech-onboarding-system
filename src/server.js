@@ -5,6 +5,10 @@ const app = require("./app");
 
 const PORT = process.env.PORT || 3000;
 
+const {startEmailWorker} = require("./jobs/email.worker");
+
+startEmailWorker();
+
 app.use(
   "/docs",
   swaggerUi.serve,

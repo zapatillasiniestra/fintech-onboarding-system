@@ -1,6 +1,7 @@
 const pool=require("../db/db.js");
 const repository=require("../repositories/applications.repository");
 const auditRepository=require("../repositories/audit.repository");
+const {addEmailJob}=require("../jobs/email.queue");
 const AppError=require("../utils/AppError");
 
 async function getApplications(userId, page = 1, limit = 10, status, search, order) {
@@ -159,6 +160,17 @@ async function updateStatus(applicationId, adminUserId, status) {
         "invalid status transition",
         400
       );
+    }
+
+    if (
+      currentStatus === "approved" ||
+      currentStatus === "rejected"
+    ) {
+      addEmailJob({
+        email: application.email,
+        fullName: application.full_name,
+        currentStatus
+      });
     }
 
     const updated =
