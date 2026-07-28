@@ -1,3 +1,3 @@
-exports.up = () => {};
-
-exports.down = () => {};
+"use strict";
+exports.up = () => { };
+exports.down = () => { };
