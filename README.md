@@ -26,8 +26,6 @@ Repositories
 PostgreSQL
 ```
 
-This keeps HTTP concerns, business rules, and data access separate, which makes the system easier to test, extend, and maintain.
-
 ---
 
 ## Core Features
