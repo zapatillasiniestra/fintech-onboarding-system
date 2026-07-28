@@ -1,51 +1,60 @@
 # Fintech Onboarding API
 
-A production-oriented backend service for managing customer onboarding workflows in fintech environments. The project focuses on clean architecture, security, scalability, and maintainability rather than framework-specific implementations.
+A product-oriented backend for customer onboarding in regulated environments.
 
-It models a typical onboarding lifecycle, providing authenticated access, role-based administration, controlled workflow transitions, auditability, and operational tooling expected in modern backend services.
+The project focuses on clean separation of concerns, predictable workflows, auditability, and maintainability.
+
+It models a realistic onboarding lifecycle with authenticated access, role-based administration, controlled status transitions, search and pagination, and a foundation for compliance integrations and automation.
 
 ---
 
 ## Architecture
 
-The application follows a layered architecture that separates HTTP concerns, business rules, and data access.
+The application uses a layered backend design:
 
 ```text
 Client
-    │
- REST API
-    │
+  ↓
+REST API
+  ↓
 Controllers
-    │
+  ↓
 Services
-    │
+  ↓
 Repositories
-    │
+  ↓
 PostgreSQL
 ```
 
-This separation keeps business logic independent from infrastructure, making the system easier to test, maintain, and extend.
+This keeps HTTP concerns, business rules, and data access separate, which makes the system easier to test, extend, and maintain.
 
 ---
 
-## Core Capabilities
+## Core Features
 
-* Secure authentication and session management
+* JWT authentication
 * Role-based authorization
 * Stateful onboarding workflow with controlled status transitions
-* Search, filtering, sorting and pagination
-* Audit trail for administrative operations
-* API documentation
-* Health monitoring endpoint
-* Automated testing and continuous integration
+* Search, filtering, sorting, and pagination
+* Audit trail for administrative actions
+* Zod validation
+* Swagger/OpenAPI documentation
+* Health check endpoint
+* Background email job queue
+* Automated tests
+* Continuous integration
 
 ---
 
-## Technology
+## Tech Stack
 
+* TypeScript
 * Node.js
 * Express
 * PostgreSQL
+* Zod
+* Jest
+* Swagger
 * Docker
 * GitHub Actions
 
@@ -53,19 +62,28 @@ This separation keeps business logic independent from infrastructure, making the
 
 ## Local Development
 
+### With Docker
+
 ```bash
 docker compose up --build
 ```
 
-The API is available at:
+### With Node.js
 
+```bash
+npm install
+npm run dev
 ```
+
+The API runs at:
+
+```text
 http://localhost:3000
 ```
 
 Interactive API documentation:
 
-```
+```text
 /docs
 ```
 
@@ -73,13 +91,13 @@ Interactive API documentation:
 
 ## Testing
 
-The project includes automated unit and integration tests executed locally with:
+Run the test suite with:
 
 ```bash
 npm test
 ```
 
-Every push and pull request is automatically validated through GitHub Actions.
+The project is structured so that unit and integration tests can run against the application layers with minimal coupling to infrastructure.
 
 ---
 
@@ -87,7 +105,6 @@ Every push and pull request is automatically validated through GitHub Actions.
 
 ```text
 src/
- ├── constants/
  ├── controllers/
  ├── services/
  ├── repositories/
@@ -95,6 +112,23 @@ src/
  ├── validators/
  ├── routes/
  ├── db/
+ ├── jobs/
+ ├── types/
  ├── utils/
  └── tests/
 ```
+
+---
+
+## Project Goals
+
+The codebase is designed to resemble a real backend foundation for regulated onboarding workflows. It is intended to be a strong example of backend architecture, not just a CRUD demo.
+
+Future extensions can include:
+
+* document uploads
+* OCR and data extraction
+* sanctions screening
+* compliance providers
+* AI-assisted onboarding review
+* additional workflow automation
