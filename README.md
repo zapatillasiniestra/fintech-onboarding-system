@@ -120,13 +120,13 @@ src/
 
 ## Project Goals
 
-The codebase is designed to resemble a real backend foundation for regulated onboarding workflows. It is intended to be a strong example of backend architecture, not just a CRUD demo.
+The codebase is designed to resemble a real backend foundation for regulated onboarding workflows. It is intended to be a strong example of backend architecture.
 
 Future extensions can include:
 
 * document uploads
-* OCR and data extraction
-* sanctions screening
 * compliance providers
+* OCR and data extraction (AI)
 * AI-assisted onboarding review
-* additional workflow automation
+* more screening
+* more workflow automation
