@@ -1,10 +1,10 @@
-# Fintech Onboarding API
+# AI Onboarding Platform
 
-A product-oriented backend for customer onboarding in regulated environments.
+An open-source, modular backend platform for AI-assisted customer onboarding in regulated industries.
 
-The project focuses on clean separation of concerns, predictable workflows, auditability, and maintainability.
+The project focuses on clean architecture, workflow automation, auditability, and AI governance. It is designed to help organizations build secure onboarding systems with pluggable compliance providers, transparent decision workflows, and a foundation for meeting emerging regulatory requirements such as the EU AI Act.
 
-It models a realistic onboarding lifecycle with authenticated access, role-based administration, controlled status transitions, search and pagination, and a foundation for compliance integrations and automation.
+It models a realistic onboarding lifecycle with authentication, role-based access control, configurable workflows, audit logs, notifications, search, pagination, and extensible integrations for identity verification, compliance services, and AI-powered assistance.
 
 ---
 
