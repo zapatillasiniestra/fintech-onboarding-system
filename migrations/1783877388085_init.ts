@@ -1,6 +1,13 @@
 import { MigrationBuilder } from "node-pg-migrate";
 
 export const up = (pgm: MigrationBuilder) => {
+  pgm.createType("application_status", [
+    "pending",
+    "under_review",
+    "approved",
+    "rejected",
+  ]);
+
   pgm.createTable("users", {
     id: "id",
 
@@ -52,8 +59,40 @@ export const up = (pgm: MigrationBuilder) => {
       notNull: true,
     },
 
-    status: {
+    identity_provider: {
       type: "text",
+      notNull: true,
+    },
+
+    identity_provider_reference: {
+      type: "text",
+    },
+
+    identity_confidence: {
+      type: "real",
+    },
+
+    identity_decision: {
+      type: "text",
+      notNull: true,
+    },
+
+    identity_reasons: {
+      type: "jsonb",
+    },
+
+    identity_raw: {
+      type: "jsonb",
+    },
+
+    identity_verified_at: {
+      type: "timestamp",
+      notNull: true,
+      default: pgm.func("current_timestamp"),
+    },
+
+    status: {
+      type: "application_status",
       notNull: true,
       default: "pending",
     },
@@ -136,12 +175,6 @@ export const up = (pgm: MigrationBuilder) => {
 
   pgm.createIndex("audit_logs", "admin_id");
 
-  pgm.createType("application_status", [
-    "pending",
-    "under_review",
-    "approved",
-    "rejected",
-]);
 };
 
 export const down = (pgm: MigrationBuilder) => {
@@ -149,4 +182,6 @@ export const down = (pgm: MigrationBuilder) => {
   pgm.dropTable("refresh_tokens");
   pgm.dropTable("applications");
   pgm.dropTable("users");
+
+  pgm.dropType("application_status");
 };

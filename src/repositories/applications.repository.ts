@@ -1,6 +1,6 @@
 import pool from "../db/db";
 import type { PoolClient } from "pg";
-import type { Application, ApplicationStatus, SortOrder } from "../types/application";
+import type { Application, ApplicationStatus, SortOrder, CreateApplicationData } from "../types/application";
 
 async function findById(
     id: number
@@ -75,17 +75,43 @@ async function getRecents() {
 }
 
 async function create(
-    userId: number,
-    fullName: string,
-    email: string
+  data: CreateApplicationData
 ): Promise<Application> {
+
+  const {
+    userId,
+    fullName,
+    email,
+    verification
+  } = data;
+
   const result = await pool.query(
     `
-    INSERT INTO applications (user_id, full_name, email)
-    VALUES ($1, $2, $3)
+    INSERT INTO applications (
+      user_id,
+      full_name,
+      email,
+      identity_provider,
+      identity_provider_reference,
+      identity_confidence,
+      identity_decision,
+      identity_reasons,
+      identity_raw
+    )
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
     RETURNING *
     `,
-    [userId, fullName, email]
+    [
+      userId,
+      fullName,
+      email,
+      verification.provider,
+      verification.externalId,
+      verification.confidence,
+      verification.decision,
+      JSON.stringify(verification.reasons ?? []),
+      JSON.stringify(verification.raw ?? {})
+    ]
   );
 
   return result.rows[0];

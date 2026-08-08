@@ -21,15 +21,31 @@ export interface ApplicationStats {
   approvalRate: number;
 }
 
-export interface VerificationResult {
+export interface IdentityRequest {
+  full_name: string;
+  email: string;
+}
+
+export interface IdentityVerification {
   verified: boolean;
   confidence: number;
   provider: string;
-  reason?: string;
-  raw?: unknown;
+  decision?: Decision;
+  externalId: string;
+  reasons: string[];
+  raw: Record<string, unknown>;
+}
+
+export interface CreateApplicationData {
+  userId: number;
+  fullName: string;
+  email: string;
+  verification: IdentityVerification;
 }
 
 export type UserRole = "user" | "admin";
+
+export type Decision = "approved" | "rejected" | "manual_review";
 
 export type SortOrder = "asc" | "desc";
 

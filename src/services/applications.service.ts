@@ -1,31 +1,16 @@
 import pool from "../db/db";
-import type { Application, ApplicationStats, ApplicationStatus,SortOrder } from "../types/application";
+import type { ApplicationStats, ApplicationStatus,IdentityRequest,SortOrder } from "../types/application";
 import repository from "../repositories/applications.repository";
 import auditRepository from "../repositories/audit.repository";
 import {addEmailJob} from "../jobs/email.queue";
 import {AppError} from "../utils/AppError";
-import { MockIdentityProvider } from "../providers/identity";
-// import { createIdentityProvider } from "../providers/ProviderFactory";
-
-// async function createIdentity(
-//     application: Application
-//   ) {
-//   const identityProvider = createIdentityProvider();
-//   const verification = await identityProvider.verifyIdentity(application);
-// }
+import { createIdentityProvider } from "../providers/ProviderFactory";
 
 async function verifyIdentity(
-    application: Application
+    request: IdentityRequest
   ) {
-  const identityProvider = new MockIdentityProvider();
-  const verification = await identityProvider.verifyIdentity(application);
-
-  if (!verification.verified) {
-    throw new AppError(
-      "identity verification failed",
-      400
-    );
-  }
+  const identityProvider = createIdentityProvider();
+  const verification = await identityProvider.verifyIdentity(request);
 
   return verification;
 }
@@ -147,15 +132,33 @@ async function createApplication(
     full_name: string,
     email: string
   ) {
-  const result =
-    await repository.create(userId, full_name, email);
+  const verification = await verifyIdentity({
+    full_name,
+    email
+  });
 
-  if (!result) {
+  if (!verification.verified) {
     throw new AppError(
-      "data not found",
-      404
+      "identity verification failed",
+      400
     );
   }
+
+  switch (verification.decision) {
+    case "approved":
+
+    case "manual_review":
+
+    case "rejected":
+
+  }
+
+  const result = repository.create({
+    userId,
+    fullName: full_name,
+    email,
+    verification
+  });
 
   return result;
 }

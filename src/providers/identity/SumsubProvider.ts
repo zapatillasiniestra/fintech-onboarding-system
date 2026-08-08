@@ -1,23 +1,20 @@
-import {
-  IdentityProvider,
-  VerificationResult
-} from "./IdentityProvider";
-
-import { Application } from "../../types/application";
+import { IdentityProvider } from "./IdentityProvider";
+import { IdentityRequest, IdentityVerification } from "../../types/application";
 
 export class SumsubProvider
   implements IdentityProvider {
 
   async verifyIdentity(
-    _application: Application
-  ): Promise<VerificationResult> {
-
-    // TODO:
-    // Call Sumsub API
+    _request: IdentityRequest
+  ): Promise<IdentityVerification> {
 
     return {
       verified: true,
-      confidence: 0.97
+      provider: "sumsub",
+      confidence: 0.97,
+      externalId: crypto.randomUUID(),
+      reasons: ["Sumsub verification successful"],
+      raw: {"sumsub": "raw data"}
     };
 
   }

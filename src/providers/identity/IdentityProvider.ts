@@ -1,13 +1,7 @@
-import { Application } from "../../types/application";
-
-export interface VerificationResult {
-  verified: boolean;
-  confidence: number;
-  reason?: string;
-}
+import { IdentityRequest, IdentityVerification } from "../../types/application";
 
 export interface IdentityProvider {
   verifyIdentity(
-    application: Application
-  ): Promise<VerificationResult>;
+    request: IdentityRequest
+  ): Promise<IdentityVerification>;
 }

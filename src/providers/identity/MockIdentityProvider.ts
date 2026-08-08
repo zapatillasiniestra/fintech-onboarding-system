@@ -1,17 +1,24 @@
-import { IdentityProvider, VerificationResult } from "./IdentityProvider";
-import { Application } from "../../types/application";
+import { IdentityRequest, IdentityVerification } from "../../types/application";
+import { IdentityProvider } from "./IdentityProvider";
 
 export class MockIdentityProvider
   implements IdentityProvider {
 
   async verifyIdentity(
-    _application: Application
-  ): Promise<VerificationResult> {
+    _request: IdentityRequest
+  ): Promise<IdentityVerification> {
+
+      console.log("mockprovider called");
+
 
     return {
-      verified: true,
-      confidence: 0.98
+        verified: true,
+        confidence: 0.98,
+        provider: "mock",
+        decision: "approved",
+        externalId: crypto.randomUUID(),
+        reasons: ["Mock verification successful"],
+        raw: {"mock": "raw data"}
     };
-
   }
 }
