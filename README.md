@@ -30,17 +30,18 @@ PostgreSQL
 
 ## Core Features
 
-* JWT authentication
+* JWT authentication & refresh tokens
 * Role-based authorization
 * Stateful onboarding workflow with controlled status transitions
 * Search, filtering, sorting, and pagination
-* Audit trail for administrative actions
+* Audit logging
 * Zod validation
 * Swagger/OpenAPI documentation
 * Health check endpoint
-* Background email job queue
+* Background email queue
 * Automated tests
-* Continuous integration
+* Provider abstraction (foundation for compliance integrations)
+* TypeScript
 
 ---
 
@@ -70,6 +71,7 @@ docker compose up --build
 
 ```bash
 npm install
+npm run migrate
 npm run dev
 ```
 
@@ -106,6 +108,7 @@ src/
  ├── controllers/
  ├── services/
  ├── repositories/
+ ├── providers/
  ├── middleware/
  ├── validators/
  ├── routes/
@@ -115,18 +118,3 @@ src/
  ├── utils/
  └── tests/
 ```
-
----
-
-## Project Goals
-
-The codebase is designed to resemble a real backend foundation for regulated onboarding workflows. It is intended to be a strong example of backend architecture.
-
-Future extensions can include:
-
-* document uploads
-* compliance providers
-* OCR and data extraction (AI)
-* AI-assisted onboarding review
-* more screening
-* more workflow automation
