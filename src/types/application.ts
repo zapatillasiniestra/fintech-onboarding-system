@@ -14,11 +14,19 @@ export interface Application {
 }
 
 export interface ApplicationStats {
-    pending: number;
-    under_review: number;
-    approved: number;
-    rejected: number;
-    approvalRate: number;
+  pending: number;
+  under_review: number;
+  approved: number;
+  rejected: number;
+  approvalRate: number;
+}
+
+export interface VerificationResult {
+  verified: boolean;
+  confidence: number;
+  provider: string;
+  reason?: string;
+  raw?: unknown;
 }
 
 export type UserRole = "user" | "admin";

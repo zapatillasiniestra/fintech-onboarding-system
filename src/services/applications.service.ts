@@ -1,9 +1,34 @@
 import pool from "../db/db";
-import type { ApplicationStats, ApplicationStatus,SortOrder } from "../types/application";
+import type { Application, ApplicationStats, ApplicationStatus,SortOrder } from "../types/application";
 import repository from "../repositories/applications.repository";
 import auditRepository from "../repositories/audit.repository";
 import {addEmailJob} from "../jobs/email.queue";
 import {AppError} from "../utils/AppError";
+import { MockIdentityProvider } from "../providers/identity";
+// import { createIdentityProvider } from "../providers/ProviderFactory";
+
+// async function createIdentity(
+//     application: Application
+//   ) {
+//   const identityProvider = createIdentityProvider();
+//   const verification = await identityProvider.verifyIdentity(application);
+// }
+
+async function verifyIdentity(
+    application: Application
+  ) {
+  const identityProvider = new MockIdentityProvider();
+  const verification = await identityProvider.verifyIdentity(application);
+
+  if (!verification.verified) {
+    throw new AppError(
+      "identity verification failed",
+      400
+    );
+  }
+
+  return verification;
+}
 
 async function getApplications(
     userId: number,
@@ -231,6 +256,7 @@ async function updateStatus(
 }
 
 export default {
+  verifyIdentity,
   getApplications,
   getAllApplications,
   getApplicationsById,
