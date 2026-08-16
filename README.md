@@ -1,10 +1,8 @@
 # AI Onboarding Platform
 
-An open-source, modular backend platform for AI-assisted customer onboarding in regulated industries.
+An open-source backend platform for AI-assisted customer onboarding in regulated industries.
 
-The project focuses on clean architecture, workflow automation, auditability, and AI governance. It is designed to help organizations build secure onboarding systems with pluggable compliance providers, transparent decision workflows, and a foundation for meeting emerging regulatory requirements such as the EU AI Act.
-
-It models a realistic onboarding lifecycle with authentication, role-based access control, configurable workflows, audit logs, notifications, search, pagination, and extensible integrations for identity verification, compliance services, and AI-powered assistance.
+The project is built around modular architecture, identity verification, AI-assisted assessments, auditability, and extensible provider integrations.
 
 ---
 
@@ -31,8 +29,9 @@ PostgreSQL
 ## Core Features
 
 * JWT authentication & refresh tokens
-* Role-based authorization
-* Stateful onboarding workflow with controlled status transitions
+* RBAC
+* Controlled onboarding status transitions
+* Identity verification
 * Search, filtering, sorting, and pagination
 * Audit logging
 * Zod validation
@@ -40,15 +39,15 @@ PostgreSQL
 * Health check endpoint
 * Background email queue
 * Automated tests
-* Provider abstraction (foundation for compliance integrations)
-* TypeScript
-
+* AI-assisted risk assessment
+* Persisted AI assessments
+  
 ---
 
 ## Tech Stack
 
 * TypeScript
-* Node.js
+* NodeJS
 * Express
 * PostgreSQL
 * Zod
@@ -81,10 +80,10 @@ The API runs at:
 http://localhost:3000
 ```
 
-Interactive API documentation:
+Swagger documentation:
 
 ```text
-/docs
+http://localhost:3000/docs
 ```
 
 ---
@@ -95,6 +94,12 @@ Run the test suite with:
 
 ```bash
 npm test
+```
+
+Build with:
+
+```bash
+npm run build
 ```
 
 The project is structured so that unit and integration tests can run against the application layers with minimal coupling to infrastructure.
