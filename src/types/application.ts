@@ -60,3 +60,4 @@ export interface EmailJob {
   fullName: string;
   status: ApplicationStatus;
 }
+

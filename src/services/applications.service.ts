@@ -4,7 +4,11 @@ import repository from "../repositories/applications.repository";
 import auditRepository from "../repositories/audit.repository";
 import {addEmailJob} from "../jobs/email.queue";
 import {AppError} from "../utils/AppError";
-import { createIdentityProvider } from "../providers/ProviderFactory";
+import {
+  createIdentityProvider,
+  createAIProvider
+} from "../providers/ProviderFactory";
+import aiAssessmentsRepository from "../repositories/ai-assessments.repository";
 
 async function verifyIdentity(
     request: IdentityRequest
@@ -128,10 +132,10 @@ async function getRecents() {
 }
 
 async function createApplication(
-    userId: number,
-    full_name: string,
-    email: string
-  ) {
+  userId: number,
+  full_name: string,
+  email: string
+) {
   const verification = await verifyIdentity({
     full_name,
     email
@@ -144,20 +148,28 @@ async function createApplication(
     );
   }
 
-  switch (verification.decision) {
-    case "approved":
+  const aiProvider = createAIProvider();
 
-    case "manual_review":
+  const assessment =
+    await aiProvider.assessApplication({
+      fullName: full_name,
+      email,
+      verification
+    });
 
-    case "rejected":
-
-  }
-
-  const result = repository.create({
+  const result = await repository.create({
     userId,
     fullName: full_name,
     email,
     verification
+  });
+
+  await aiAssessmentsRepository.create({
+    applicationId: result.id,
+    riskLevel: assessment.riskLevel,
+    decision: assessment.decision,
+    reasons: assessment.reasons,
+    model: "mock"
   });
 
   return result;
