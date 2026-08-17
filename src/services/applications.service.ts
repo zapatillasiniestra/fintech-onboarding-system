@@ -74,6 +74,33 @@ async function getApplicationsById(userId: number) {
   return application;
 }
 
+async function authorizeApplicationAccess(
+  applicationId: number,
+  userId: number,
+  role: "user" | "admin"
+) {
+  const application = await repository.findById(applicationId);
+
+  if (!application) {
+    throw new AppError(
+      "application not found",
+      404
+    );
+  }
+
+  if (
+    role !== "admin" &&
+    application.user_id !== userId
+  ) {
+    throw new AppError(
+      "forbidden",
+      403
+    );
+  }
+
+  return application;
+}
+
 async function getStats(userId: number) {
   const application =
     await repository.getStats(userId);
@@ -317,6 +344,7 @@ export default {
   getApplications,
   getAllApplications,
   getApplicationsById,
+  authorizeApplicationAccess,
   getStats,
   getRecents,
   createApplication,

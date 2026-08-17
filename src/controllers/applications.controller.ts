@@ -171,6 +171,10 @@ async function getAIAudit(
   next: NextFunction
 ) {
   try {
+    if (!req.user) {
+      throw new AppError("Unauthorized", 401);
+    }
+
     const applicationId = Number(req.params.id);
 
     if (Number.isNaN(applicationId)) {
@@ -179,6 +183,12 @@ async function getAIAudit(
         400
       );
     }
+
+    await applicationsService.authorizeApplicationAccess(
+      applicationId,
+      req.user.userId,
+      req.user.role
+    );
 
     const client = await pool.connect();
 
@@ -206,6 +216,9 @@ async function verifyAIAudit(
   next: NextFunction
 ) {
   try {
+    if (!req.user) {
+      throw new AppError("Unauthorized", 401);
+    }
     const applicationId = Number(req.params.id);
 
     if (Number.isNaN(applicationId)) {
@@ -215,6 +228,12 @@ async function verifyAIAudit(
       );
     }
 
+    await applicationsService.authorizeApplicationAccess(
+      applicationId,
+      req.user.userId,
+      req.user.role
+    );
+    
     const client = await pool.connect();
 
     try {

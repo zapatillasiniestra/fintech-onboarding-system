@@ -102,7 +102,7 @@ describe("auth routes", () => {
 test("AI audit verification returns valid chain", async () => {
   const token = jwt.sign(
     {
-      userId: 1,
+      userId: 4,
       role: "user"
     },
     process.env.JWT_SECRET!
@@ -124,6 +124,7 @@ test("AI audit verification returns valid chain", async () => {
 
   expect(response.body.events).toBeGreaterThanOrEqual(1);
 });
+
 test("AI audit verification rejects invalid application ID", async () => {
   const token = jwt.sign(
     {
