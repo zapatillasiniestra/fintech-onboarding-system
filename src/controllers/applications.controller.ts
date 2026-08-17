@@ -3,6 +3,8 @@ import applicationsService from "../services/applications.service";
 import {AppError} from "../utils/AppError";
 import { createApplicationSchema, updateStatusSchema } from "../validators/applications.validator";
 import { ApplicationStatus } from "../types/application";
+import auditService from "../services/audit.service";
+import pool from "../db/db";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -42,7 +44,6 @@ async function getApplications(
     req: Request,
     res: Response
   ) {
-  console.log(req.user);
   const page = Number(req.query.page ?? 1);
   const limit = Number(req.query.limit ?? 10);
   const status =
@@ -80,7 +81,6 @@ async function getAllApplications(
   if (!req.user) {
     throw new AppError("Unauthorized", 401);
   }
-  console.log(req.user);
   const applications = await applicationsService.getAllApplications();
   res.json(applications);
 }
@@ -90,7 +90,6 @@ async function getApplicationsById(
     res: Response
   ) {
 
-  console.log(req.params.id);
   const applications = await applicationsService.getApplicationsById(Number(req.params.id));
   res.json(applications);
 }
@@ -103,7 +102,6 @@ async function getStats(
   if (!req.user) {
     throw new AppError("Unauthorized", 401);
   }
-  console.log(req.user);
   const applications = await applicationsService.getStats(req.user.userId);
   res.json(applications);
 }
@@ -116,7 +114,6 @@ async function getRecents(
   if (!req.user) {
     throw new AppError("Unauthorized", 401);
   }
-  console.log(req.user);
   const applications = await applicationsService.getRecents();
   res.json(applications);
 }
@@ -168,6 +165,41 @@ async function updateStatus(
   }
 }
 
+async function getAIAudit(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const applicationId = Number(req.params.id);
+
+    if (Number.isNaN(applicationId)) {
+      throw new AppError(
+        "invalid application id",
+        400
+      );
+    }
+
+    const client = await pool.connect();
+
+    try {
+      const auditEvents =
+        await auditService.getAIAuditEvents(
+          client,
+          applicationId
+        );
+
+      return res.status(200).json(auditEvents);
+
+    } finally {
+      client.release();
+    }
+
+  } catch (err) {
+    return next(err);
+  }
+}
+
 export default {
   getApplications,
   getAllApplications,
@@ -175,5 +207,6 @@ export default {
   getStats,
   getRecents,
   createApplication,
-  updateStatus
+  updateStatus,
+  getAIAudit
 };

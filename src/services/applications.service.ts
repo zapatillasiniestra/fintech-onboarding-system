@@ -4,11 +4,9 @@ import repository from "../repositories/applications.repository";
 import auditRepository from "../repositories/audit.repository";
 import {addEmailJob} from "../jobs/email.queue";
 import {AppError} from "../utils/AppError";
-import {
-  createIdentityProvider,
-  createAIProvider
-} from "../providers/ProviderFactory";
-import aiAssessmentsRepository from "../repositories/ai-assessments.repository";
+import { createIdentityProvider, createAIProvider} from "../providers/ProviderFactory";
+import aiAssessmentRepository from "../repositories/ai-assessment.repository";
+import auditService from "./audit.service";
 
 async function verifyIdentity(
     request: IdentityRequest
@@ -150,29 +148,73 @@ async function createApplication(
 
   const aiProvider = createAIProvider();
 
-  const assessment =
-    await aiProvider.assessApplication({
-      fullName: full_name,
-      email,
-      verification
-    });
-
-  const result = await repository.create({
-    userId,
+  const assessment = await aiProvider.assessApplication({
     fullName: full_name,
     email,
     verification
   });
 
-  await aiAssessmentsRepository.create({
-    applicationId: result.id,
-    riskLevel: assessment.riskLevel,
-    decision: assessment.decision,
-    reasons: assessment.reasons,
-    model: "mock"
-  });
+  const client = await pool.connect();
 
-  return result;
+  try {
+    await client.query("BEGIN");
+
+    const application = await repository.create(
+      client,
+      {
+        userId,
+        fullName: full_name,
+        email,
+        verification
+      }
+    );
+
+    await aiAssessmentRepository.create(
+      client,
+      {
+        applicationId: application.id,
+        riskLevel: assessment.riskLevel,
+        decision: assessment.decision,
+        reasons: assessment.reasons,
+        model: "mock"
+      }
+    );
+
+    await auditService.createAIAuditEvent(
+      client,
+      {
+        applicationId: application.id,
+        provider: "mock",
+        model: "mock",
+        modelVersion: "1",
+        inputData: {
+          fullName: full_name,
+          email,
+          identityVerification: {
+            verified: verification.verified,
+            confidence: verification.confidence,
+            provider: verification.provider,
+            decision: verification.decision,
+            reasons: verification.reasons
+          }
+        },
+        decision: assessment.decision,
+        riskLevel: assessment.riskLevel,
+        reasons: assessment.reasons
+      }
+    );
+
+    await client.query("COMMIT");
+
+    return application;
+
+  } catch (err: unknown) {
+    await client.query("ROLLBACK");
+    throw err;
+
+  } finally {
+    client.release();
+  }
 }
 
 async function updateStatus(

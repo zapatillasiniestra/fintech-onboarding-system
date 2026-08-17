@@ -75,9 +75,9 @@ async function getRecents() {
 }
 
 async function create(
+  client: PoolClient,
   data: CreateApplicationData
 ): Promise<Application> {
-
   const {
     userId,
     fullName,
@@ -85,7 +85,7 @@ async function create(
     verification
   } = data;
 
-  const result = await pool.query(
+  const result = await client.query(
     `
     INSERT INTO applications (
       user_id,

@@ -6,7 +6,6 @@ async function adminOnly(
     res: Response,
     next: NextFunction
   ) {
-  console.log("req.user",req.user);
   
   if (!req.user) {
       throw new AppError("Unauthorized", 401);

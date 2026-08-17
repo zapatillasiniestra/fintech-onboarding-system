@@ -8,9 +8,6 @@ export class MockIdentityProvider
     _request: IdentityRequest
   ): Promise<IdentityVerification> {
 
-      console.log("mockprovider called");
-
-
     return {
         verified: true,
         confidence: 0.98,

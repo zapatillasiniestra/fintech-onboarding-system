@@ -5,7 +5,7 @@ export type AIRiskLevel =
   | "medium"
   | "high";
 
-export interface AIAssessment {
+export interface AIAssessmentRecord {
   id: number;
   applicationId: number;
   riskLevel: AIRiskLevel;

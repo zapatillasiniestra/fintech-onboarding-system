@@ -1,6 +1,6 @@
-import pool from "../db/db";
-import type { AIAssessment } from "../types/ai-assessments";
-import type { AIRiskLevel } from "../types/ai-assessments";
+import { PoolClient } from "pg";
+import type { AIAssessmentRecord } from "../types/ai-assessment";
+import type { AIRiskLevel } from "../types/ai-assessment";
 import type { Decision } from "../types/application";
 
 interface CreateAIAssessmentData {
@@ -12,9 +12,10 @@ interface CreateAIAssessmentData {
 }
 
 async function create(
+  client: PoolClient,
   data: CreateAIAssessmentData
-): Promise<AIAssessment> {
-  const result = await pool.query(
+): Promise<AIAssessmentRecord> {
+  const result = await client.query(
     `
     INSERT INTO ai_assessments (
       application_id,
@@ -39,9 +40,10 @@ async function create(
 }
 
 async function findByApplicationId(
+  client: PoolClient,
   applicationId: number
-): Promise<AIAssessment[]> {
-  const result = await pool.query(
+): Promise<AIAssessmentRecord[]> {
+  const result = await client.query(
     `
     SELECT *
     FROM ai_assessments

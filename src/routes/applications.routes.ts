@@ -21,6 +21,12 @@ router.get(
 );
 router.get("/:id", auth, applicationsController.getApplicationsById);
 
+router.get(
+  "/:id/ai-audit",
+  auth,
+  applicationsController.getAIAudit
+);
+
 router.post("/", auth, applicationsController.createApplication);
 
 router.patch(
