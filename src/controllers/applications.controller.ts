@@ -200,6 +200,41 @@ async function getAIAudit(
   }
 }
 
+async function verifyAIAudit(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const applicationId = Number(req.params.id);
+
+    if (Number.isNaN(applicationId)) {
+      throw new AppError(
+        "invalid application id",
+        400
+      );
+    }
+
+    const client = await pool.connect();
+
+    try {
+      const result =
+        await auditService.verifyAIAuditChain(
+          client,
+          applicationId
+        );
+
+      return res.status(200).json(result);
+
+    } finally {
+      client.release();
+    }
+
+  } catch (err) {
+    return next(err);
+  }
+}
+
 export default {
   getApplications,
   getAllApplications,
@@ -208,5 +243,6 @@ export default {
   getRecents,
   createApplication,
   updateStatus,
-  getAIAudit
+  getAIAudit,
+  verifyAIAudit
 };

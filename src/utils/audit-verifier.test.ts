@@ -1,5 +1,7 @@
 import pool from "../db/db";
-import { verifyAuditEvent } from "./audit-verifier";
+import {verifyAuditEvent, verifyAuditChain} from "./audit-verifier";
+import { AuditEventToVerify } from "./audit-verifier";
+import { sha256 } from "./hashing";
 
 describe("verifyAuditEvent", () => {
   test("accepts an untampered database event", async () => {
@@ -164,6 +166,120 @@ describe("verifyAuditEvent", () => {
       client.release();
     }
   });
+
+test("detects a broken previous event hash", () => {
+  const firstEvent: AuditEventToVerify = {
+    applicationId: 4,
+    provider: "mock",
+    model: "mock",
+    modelVersion: "1",
+    inputHash: "input-1",
+    outputHash: "output-1",
+    previousEventHash: null,
+    decision: "approved" as const,
+    riskLevel: "low" as const,
+    reasons: ["reason 1"],
+    eventHash: ""
+  };
+
+  firstEvent.eventHash = sha256({
+    applicationId: firstEvent.applicationId,
+    provider: firstEvent.provider,
+    model: firstEvent.model,
+    modelVersion: firstEvent.modelVersion,
+    inputHash: firstEvent.inputHash,
+    outputHash: firstEvent.outputHash,
+    previousEventHash: null
+  });
+
+  const secondEvent = {
+    ...firstEvent,
+    previousEventHash: "tampered",
+    inputHash: "input-2",
+    outputHash: "output-2",
+    eventHash: ""
+  };
+
+  secondEvent.eventHash = sha256({
+    applicationId: secondEvent.applicationId,
+    provider: secondEvent.provider,
+    model: secondEvent.model,
+    modelVersion: secondEvent.modelVersion,
+    inputHash: secondEvent.inputHash,
+    outputHash: secondEvent.outputHash,
+    previousEventHash: secondEvent.previousEventHash
+  });
+
+  expect(
+    verifyAuditChain([firstEvent, secondEvent])
+  ).toBe(false);
+});
+
+test("accepts a valid audit chain", () => {
+  const firstEvent: AuditEventToVerify = {
+    applicationId: 4,
+    provider: "mock",
+    model: "mock",
+    modelVersion: "1",
+    inputHash: "input-1",
+    outputHash: "",
+    previousEventHash: null,
+    decision: "approved",
+    riskLevel: "low",
+    reasons: ["reason 1"],
+    eventHash: ""
+  };
+
+  firstEvent.outputHash = sha256({
+    decision: firstEvent.decision,
+    riskLevel: firstEvent.riskLevel,
+    reasons: firstEvent.reasons
+  });
+
+  firstEvent.eventHash = sha256({
+    applicationId: firstEvent.applicationId,
+    provider: firstEvent.provider,
+    model: firstEvent.model,
+    modelVersion: firstEvent.modelVersion,
+    inputHash: firstEvent.inputHash,
+    outputHash: firstEvent.outputHash,
+    previousEventHash: null
+  });
+
+  const secondEvent: AuditEventToVerify = {
+    applicationId: 4,
+    provider: "mock",
+    model: "mock",
+    modelVersion: "1",
+    inputHash: "input-2",
+    outputHash: "",
+    previousEventHash: firstEvent.eventHash,
+    decision: "approved",
+    riskLevel: "low",
+    reasons: ["reason 2"],
+    eventHash: ""
+  };
+
+  secondEvent.outputHash = sha256({
+    decision: secondEvent.decision,
+    riskLevel: secondEvent.riskLevel,
+    reasons: secondEvent.reasons
+  });
+
+  secondEvent.eventHash = sha256({
+    applicationId: secondEvent.applicationId,
+    provider: secondEvent.provider,
+    model: secondEvent.model,
+    modelVersion: secondEvent.modelVersion,
+    inputHash: secondEvent.inputHash,
+    outputHash: secondEvent.outputHash,
+    previousEventHash: secondEvent.previousEventHash
+  });
+
+  expect(
+    verifyAuditChain([firstEvent, secondEvent])
+  ).toBe(true);
+});
 
   afterAll(async () => {
     await pool.end();

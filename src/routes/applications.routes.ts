@@ -19,13 +19,20 @@ router.get(
   adminOnly,
   applicationsController.getRecents
 );
-router.get("/:id", auth, applicationsController.getApplicationsById);
+
+router.get(
+  "/:id/ai-audit/verify",
+  auth,
+  applicationsController.verifyAIAudit
+);
 
 router.get(
   "/:id/ai-audit",
   auth,
   applicationsController.getAIAudit
 );
+
+router.get("/:id", auth, applicationsController.getApplicationsById);
 
 router.post("/", auth, applicationsController.createApplication);
 

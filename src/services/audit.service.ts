@@ -1,6 +1,10 @@
 import type { PoolClient } from "pg";
 import aiAuditEventsRepository from "../repositories/ai-audit-events.repository";
 import { createAuditProvider } from "../providers/audit/AuditProviderFactory";
+import {
+  verifyAuditChain,
+  type AuditEventToVerify
+} from "../utils/audit-verifier";
 
 interface CreateAIAuditData {
   applicationId: number;
@@ -56,7 +60,41 @@ async function getAIAuditEvents(
   );
 }
 
+async function verifyAIAuditChain(
+  client: PoolClient,
+  applicationId: number
+) {
+  const rows =
+    await aiAuditEventsRepository.findByApplicationId(
+      client,
+      applicationId
+    );
+
+  const events: AuditEventToVerify[] = rows.map(
+    (row) => ({
+      applicationId: row.application_id,
+      provider: row.provider,
+      model: row.model,
+      modelVersion: row.model_version,
+      inputHash: row.input_hash,
+      outputHash: row.output_hash,
+      previousEventHash:
+        row.previous_event_hash,
+      decision: row.decision,
+      riskLevel: row.risk_level,
+      reasons: row.reasons,
+      eventHash: row.event_hash
+    })
+  );
+
+  return {
+    valid: verifyAuditChain(events),
+    events: events.length
+  };
+}
+
 export default {
   createAIAuditEvent,
-  getAIAuditEvents
+  getAIAuditEvents,
+  verifyAIAuditChain
 };

@@ -92,6 +92,60 @@ describe("auth routes", () => {
 
     expect(response.status).toBe(200);
   });
+  test("AI audit verification requires authentication", async () => {
+  const response = await request(app)
+    .get("/applications/4/ai-audit/verify");
+
+  expect(response.status).toBe(401);
+});
+
+test("AI audit verification returns valid chain", async () => {
+  const token = jwt.sign(
+    {
+      userId: 1,
+      role: "user"
+    },
+    process.env.JWT_SECRET!
+  );
+
+  const response = await request(app)
+    .get("/applications/4/ai-audit/verify")
+    .set(
+      "Authorization",
+      `Bearer ${token}`
+    );
+
+  expect(response.status).toBe(200);
+
+  expect(response.body).toEqual({
+    valid: true,
+    events: expect.any(Number)
+  });
+
+  expect(response.body.events).toBeGreaterThanOrEqual(1);
+});
+test("AI audit verification rejects invalid application ID", async () => {
+  const token = jwt.sign(
+    {
+      userId: 1,
+      role: "user"
+    },
+    process.env.JWT_SECRET!
+  );
+
+  const response = await request(app)
+    .get("/applications/not-a-number/ai-audit/verify")
+    .set(
+      "Authorization",
+      `Bearer ${token}`
+    );
+
+  expect(response.status).toBe(400);
+});
+  afterAll(async () => {
+    await pool.end();
+  });
+
 });
 
 export {};

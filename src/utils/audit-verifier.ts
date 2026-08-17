@@ -1,6 +1,6 @@
 import { sha256 } from "./hashing";
 
-interface AuditEventToVerify {
+export interface AuditEventToVerify {
   applicationId: number;
   provider: string;
   model: string;
@@ -38,4 +38,33 @@ export function verifyAuditEvent(
   });
 
   return expectedEventHash === event.eventHash;
+}
+
+export function verifyAuditChain(
+  events: AuditEventToVerify[]
+): boolean {
+  if (events.length === 0) {
+    return true;
+  }
+
+  for (let i = 0; i < events.length; i++) {
+    const event = events[i];
+
+    if (!verifyAuditEvent(event)) {
+      return false;
+    }
+
+    if (i === 0) {
+      if (event.previousEventHash !== null) {
+        return false;
+      }
+      continue;
+    }
+
+    if (event.previousEventHash !== events[i - 1].eventHash) {
+      return false;
+    }
+  }
+
+  return true;
 }
