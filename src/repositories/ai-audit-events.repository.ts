@@ -1,12 +1,11 @@
 import type { PoolClient } from "pg";
-// import type { AIAuditEvent } from "../providers/audit/AuditProvider";
 
 interface CreateAIAuditEventData {
   applicationId: number;
   provider: string;
   model: string;
   modelVersion?: string;
-  // inputData: Record<string, unknown>;
+  inputData: Record<string, unknown>;
   inputHash: string;
   decision: string;
   riskLevel: string;
@@ -77,6 +76,7 @@ async function create(
       provider,
       model,
       model_version,
+      input_data,
       input_hash,
       decision,
       risk_level,
@@ -97,7 +97,7 @@ async function create(
       data.provider,
       data.model,
       data.modelVersion ?? null,
-      // JSON.stringify(data.inputData),
+      JSON.stringify(data.inputData),
       data.inputHash,
       data.decision,
       data.riskLevel,
