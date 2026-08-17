@@ -59,19 +59,16 @@ async function getAllApplications() {
   return applications;
 }
 
-async function getApplicationsById(userId: number) {
-
-    const application =
-      await repository.findById(userId);
-
-    if (!application) {
-      throw new AppError(
-        "application not found",
-        404
-      );
-    }
-
-  return application;
+async function getApplicationsById(
+  applicationId: number,
+  userId: number,
+  role: "user" | "admin"
+) {
+  return authorizeApplicationAccess(
+    applicationId,
+    userId,
+    role
+  );
 }
 
 async function authorizeApplicationAccess(

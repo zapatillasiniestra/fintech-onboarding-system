@@ -143,6 +143,73 @@ test("AI audit verification rejects invalid application ID", async () => {
 
   expect(response.status).toBe(400);
 });
+
+test("application details require authentication", async () => {
+  const response = await request(app)
+    .get("/applications/4");
+
+  expect(response.status).toBe(401);
+});
+
+test("application owner can access application details", async () => {
+  const token = jwt.sign(
+    {
+      userId: 4,
+      role: "user"
+    },
+    process.env.JWT_SECRET!
+  );
+
+  const response = await request(app)
+    .get("/applications/4")
+    .set(
+      "Authorization",
+      `Bearer ${token}`
+    );
+
+  expect(response.status).toBe(200);
+  expect(response.body.id).toBe(4);
+});
+
+test("different user cannot access application details", async () => {
+  const token = jwt.sign(
+    {
+      userId: 1,
+      role: "user"
+    },
+    process.env.JWT_SECRET!
+  );
+
+  const response = await request(app)
+    .get("/applications/4")
+    .set(
+      "Authorization",
+      `Bearer ${token}`
+    );
+
+  expect(response.status).toBe(403);
+});
+
+test("admin can access application details", async () => {
+  const token = jwt.sign(
+    {
+      userId: 1,
+      role: "admin"
+    },
+    process.env.JWT_SECRET!
+  );
+
+  const response = await request(app)
+    .get("/applications/4")
+    .set(
+      "Authorization",
+      `Bearer ${token}`
+    );
+
+  expect(response.status).toBe(200);
+  expect(response.body.id).toBe(4);
+});
+
   afterAll(async () => {
     await pool.end();
   });

@@ -86,12 +86,30 @@ async function getAllApplications(
 }
 
 async function getApplicationsById(
-    req: Request,
-    res: Response
-  ) {
+  req: Request,
+  res: Response
+) {
+  if (!req.user) {
+    throw new AppError("Unauthorized", 401);
+  }
 
-  const applications = await applicationsService.getApplicationsById(Number(req.params.id));
-  res.json(applications);
+  const applicationId = Number(req.params.id);
+
+  if (Number.isNaN(applicationId)) {
+    throw new AppError(
+      "invalid application id",
+      400
+    );
+  }
+
+  const application =
+    await applicationsService.getApplicationsById(
+      applicationId,
+      req.user.userId,
+      req.user.role
+    );
+
+  res.json(application);
 }
 
 async function getStats(
