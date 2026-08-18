@@ -1,8 +1,7 @@
-# AI Onboarding Platform
+# Nahuela
 
-An open-source backend platform for AI-assisted customer onboarding in regulated industries.
-
-The project is built around modular architecture, identity verification, AI-assisted assessments, auditability, and extensible provider integrations.
+Open-source infrastructure for auditable, provider-agnostic
+AI-powered onboarding and regulated decision systems.
 
 ---
 
