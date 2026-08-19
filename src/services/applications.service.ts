@@ -7,6 +7,8 @@ import {AppError} from "../utils/AppError";
 import { createIdentityProvider, createAIProvider} from "../providers/ProviderFactory";
 import aiAssessmentRepository from "../repositories/ai-assessment.repository";
 import auditService from "./audit.service";
+import { createComplianceProvider } from "../providers/compliance/ComplianceProviderFactory";
+import complianceRepository from "../repositories/compliance.repository";
 
 async function verifyIdentity(
     request: IdentityRequest
@@ -193,7 +195,22 @@ async function createApplication(
       }
     );
 
-    await aiAssessmentRepository.create(
+  const complianceProvider=createComplianceProvider();
+  const compliance = await complianceProvider.check({
+    applicationId: application.id,
+    fullName: full_name,
+    email,
+  });
+  await complianceRepository.create(client, {
+    applicationId: application.id,
+    provider: compliance.provider,
+    decision: compliance.decision,
+    reasons: compliance.reasons,
+    externalId: compliance.externalId,
+    raw: compliance.raw,
+  });
+
+  await aiAssessmentRepository.create(
       client,
       {
         applicationId: application.id,

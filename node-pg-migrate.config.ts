@@ -7,6 +7,6 @@ export default {
   migrationsTable: "pgmigrations",
   dir: "migrations",
   ssl: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   }
 };
