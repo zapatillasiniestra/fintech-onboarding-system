@@ -15,13 +15,13 @@ export function errorHandler(
     });
   }
 
-  console.error(err);
-
   if (err instanceof AppError) {
     return res.status(err.status).json({
       error: err.message,
     });
   }
+
+  console.error(err);
 
   return res.status(500).json({
     error: "Internal server error",

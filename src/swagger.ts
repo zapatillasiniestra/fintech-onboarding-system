@@ -4,9 +4,9 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Nahuela API",
+      title: "Nahuela",
       version: "1.0.0",
-      description: "Open-source API for auditable onboarding and regulated decision systems."
+      description: "Open-source infrastructure for auditable, provider-agnostic AI-powered onboarding and regulated decision systems."
     },
     servers: [
       {
