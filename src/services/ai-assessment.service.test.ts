@@ -2,30 +2,36 @@ import pool from "../db/db";
 import { assessApplication } from "./ai-assessment.service";
 
 describe("AI assessment audit chain", () => {
-  test("creates a chained audit event for an existing application", async () => {
+  test("creates chained audit events for an application", async () => {
     const client = await pool.connect();
 
     try {
       await client.query("BEGIN");
 
-      const applicationId = 4;
-
       const applicationResult = await client.query(
         `
-        SELECT *
-        FROM applications
-        WHERE id = $1
+        INSERT INTO applications (
+          user_id,
+          status,
+          full_name,
+          email,
+          identity_provider,
+          identity_decision
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
         `,
-        [applicationId]
+        [
+          4,
+          "pending",
+          "Audit Test User",
+          "audit-test@example.com",
+          "mock",
+          "approved"
+        ]
       );
 
       const application = applicationResult.rows[0];
-
-      if (!application) {
-        throw new Error(
-          `Application ${applicationId} not found`
-        );
-      }
 
       const verification = {
         verified: true,
@@ -39,7 +45,7 @@ describe("AI assessment audit chain", () => {
 
       await assessApplication(
         client,
-        applicationId,
+        application.id,
         {
           fullName: application.full_name,
           email: application.email,
@@ -47,40 +53,44 @@ describe("AI assessment audit chain", () => {
         }
       );
 
-    const assessmentResult = await client.query(
-        `
-        SELECT *
-        FROM ai_assessments
-        WHERE application_id = $1
-        ORDER BY id ASC
-        `,
-        [applicationId]
-        );
+      await assessApplication(
+        client,
+        application.id,
+        {
+          fullName: application.full_name,
+          email: application.email,
+          verification
+        }
+      );
 
-        console.log("AI ASSESSMENTS:", assessmentResult.rows);
-
-        const auditResult = await client.query(
+      const auditResult = await client.query(
         `
         SELECT
-            id,
-            application_id,
-            previous_event_hash,
-            event_hash
+          id,
+          application_id,
+          event_type,
+          previous_event_hash,
+          event_hash
         FROM ai_audit_events
         WHERE application_id = $1
         ORDER BY id ASC
         `,
-        [applicationId]
-        );
+        [application.id]
+      );
 
-        console.log("AUDIT EVENTS:", auditResult.rows);
-
-      expect(auditResult.rows.length).toBeGreaterThanOrEqual(2);
+      expect(auditResult.rows).toHaveLength(2);
 
       const firstEvent = auditResult.rows[0];
       const secondEvent = auditResult.rows[1];
 
-      expect(firstEvent.previous_event_hash).toBeNull();
+      expect(firstEvent.event_type)
+        .toBe("ai.assessment.completed");
+
+      expect(secondEvent.event_type)
+        .toBe("ai.assessment.completed");
+
+      expect(firstEvent.previous_event_hash)
+        .toBeNull();
 
       expect(secondEvent.previous_event_hash)
         .toBe(firstEvent.event_hash);
@@ -98,7 +108,8 @@ describe("AI assessment audit chain", () => {
       client.release();
     }
   });
+
   afterAll(async () => {
     await pool.end();
-});
+  });
 });

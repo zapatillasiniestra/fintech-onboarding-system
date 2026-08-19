@@ -21,6 +21,7 @@ export class LocalAuditProvider implements AuditProvider {
 
     const eventData = {
       applicationId: input.applicationId,
+      eventType: input.eventType,
       provider: input.provider,
       model: input.model,
       modelVersion: input.modelVersion ?? null,

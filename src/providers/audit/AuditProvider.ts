@@ -3,6 +3,7 @@ import type { AIRiskLevel } from "../../types/ai-assessment";
 
 export interface AIAuditEventInput {
   applicationId: number;
+  eventType: string;
   provider: string;
   model: string;
   modelVersion?: string;

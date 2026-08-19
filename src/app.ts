@@ -1,7 +1,7 @@
 import express from "express";
 import authRoutes from "./routes/auth.routes";
 import applicationsRoutes from "./routes/applications.routes";
-import errorHandler from "./middleware/error.middleware";
+import {errorHandler} from "./middleware/error.middleware";
 import requestLogger from "./middleware/logger.middleware";
 import healthRoutes from "./routes/health.routes";
 

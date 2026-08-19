@@ -2,6 +2,7 @@ import { sha256 } from "./hashing";
 
 export interface AuditEventToVerify {
   applicationId: number;
+  eventType: string;
   provider: string;
   model: string;
   modelVersion?: string | null;
@@ -28,6 +29,7 @@ export function verifyAuditEvent(
 
   const expectedEventHash = sha256({
     applicationId: event.applicationId,
+    eventType: event.eventType,
     provider: event.provider,
     model: event.model,
     modelVersion: event.modelVersion ?? null,

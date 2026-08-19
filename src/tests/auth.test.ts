@@ -1,9 +1,10 @@
-import detenv from "dotenv";
-detenv.config();
+import dotenv from "dotenv";
+dotenv.config();
 import request from "supertest";
 import app from "../app";
 import jwt from "jsonwebtoken";
 import pool from "../db/db";
+import { LocalAuditProvider } from "../providers/audit/LocalAuditProvider";
 
 describe("auth routes", () => {
   test("register requires email", async () => {
@@ -100,6 +101,74 @@ describe("auth routes", () => {
 });
 
 test("AI audit verification returns valid chain", async () => {
+  const provider = new LocalAuditProvider();
+
+  const auditEvent = await provider.createAIAuditEvent({
+    applicationId: 4,
+    eventType: "ai.assessment.completed",
+    provider: "mock",
+    model: "mock",
+    modelVersion: "1",
+    inputData: {
+      fullName: "Brenda Giménez",
+      email: "brenda@test.com",
+    },
+    decision: "approved",
+    riskLevel: "low",
+    reasons: [
+      "No significant risk indicators detected."
+    ],
+  });
+
+  const result=await pool.query(
+    `
+    INSERT INTO ai_audit_events (
+      application_id,
+      event_type,
+      provider,
+      model,
+      model_version,
+      input_data,
+      input_hash,
+      decision,
+      risk_level,
+      reasons,
+      output_hash,
+      previous_event_hash,
+      event_hash,
+      hash_algorithm
+    )
+    VALUES (
+      $1, $2, $3, $4, $5, $6, $7,
+      $8, $9, $10, $11, $12, $13, $14
+    )
+      RETURNING id
+    `,
+    [
+      4,
+      "ai.assessment.completed",
+      "mock",
+      "mock",
+      "1",
+      JSON.stringify({
+        fullName: "Brenda Giménez",
+        email: "brenda@test.com",
+      }),
+      auditEvent.inputHash,
+      "approved",
+      "low",
+      JSON.stringify([
+        "No significant risk indicators detected."
+      ]),
+      auditEvent.outputHash,
+      null,
+      auditEvent.eventHash,
+      "SHA-256",
+    ]
+  );
+
+  const auditEventId = result.rows[0].id;
+
   const token = jwt.sign(
     {
       userId: 4,
@@ -115,6 +184,10 @@ test("AI audit verification returns valid chain", async () => {
       `Bearer ${token}`
     );
 
+  await pool.query(
+    `DELETE FROM ai_audit_events WHERE id = $1`,
+    [auditEventId]
+  );
   expect(response.status).toBe(200);
 
   expect(response.body).toEqual({

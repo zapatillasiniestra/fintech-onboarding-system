@@ -29,6 +29,7 @@ export async function assessApplication(
     client,
     {
       applicationId,
+      eventType: "ai.assessment.completed",
       provider: "mock",
       model: "mock",
       modelVersion: "1",

@@ -6,6 +6,7 @@ describe("LocalAuditProvider", () => {
 
     const event = await provider.createAIAuditEvent({
       applicationId: 1,
+      eventType: "ai.assessment.completed",
       provider: "mock",
       model: "mock",
       modelVersion: "1",
@@ -31,6 +32,7 @@ describe("LocalAuditProvider", () => {
 
     const baseInput = {
       applicationId: 1,
+      eventType: "ai.assessment.completed",
       provider: "mock",
       model: "mock",
       inputData: {
@@ -67,6 +69,7 @@ describe("LocalAuditProvider", () => {
 
     const baseInput = {
         applicationId: 1,
+        eventType: "ai.assessment.completed",
         provider: "mock",
         model: "mock",
         inputData: {
@@ -101,4 +104,38 @@ describe("LocalAuditProvider", () => {
 
     expect(second.eventHash).not.toBe(third.eventHash);
     });
+
+      test("changes the event hash when the event type changes", async () => {
+  const provider = new LocalAuditProvider();
+
+  const baseInput = {
+    applicationId: 1,
+    provider: "mock",
+    model: "mock",
+    inputData: {
+      fullName: "Nahuel Alfaro",
+      email: "nahuel@test.com",
+    },
+    decision: "approved" as const,
+    riskLevel: "low" as const,
+    reasons: [
+      "No significant risk indicators detected.",
+    ],
+  };
+
+  const aiEvent = await provider.createAIAuditEvent({
+    ...baseInput,
+    eventType: "ai.assessment.completed",
+  });
+
+  const identityEvent = await provider.createAIAuditEvent({
+    ...baseInput,
+    eventType: "identity.verification.completed",
+  });
+
+  expect(aiEvent.eventHash).not.toBe(
+    identityEvent.eventHash
+  );
+});
+
 });

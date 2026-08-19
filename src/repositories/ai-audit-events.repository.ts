@@ -2,6 +2,7 @@ import type { PoolClient } from "pg";
 
 interface CreateAIAuditEventData {
   applicationId: number;
+  eventType: string;
   provider: string;
   model: string;
   modelVersion?: string;
@@ -43,6 +44,7 @@ async function findByApplicationId(
     SELECT
       id,
       application_id,
+      event_type,
       provider,
       model,
       model_version,
@@ -73,6 +75,7 @@ async function create(
     `
     INSERT INTO ai_audit_events (
       application_id,
+      event_type,
       provider,
       model,
       model_version,
@@ -88,12 +91,13 @@ async function create(
     )
     VALUES (
       $1, $2, $3, $4, $5, $6, $7,
-      $8, $9, $10, $11, $12, $13
+      $8, $9, $10, $11, $12, $13, $14
     )
     RETURNING *
     `,
     [
       data.applicationId,
+      data.eventType,
       data.provider,
       data.model,
       data.modelVersion ?? null,

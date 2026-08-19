@@ -208,6 +208,7 @@ async function createApplication(
       client,
       {
         applicationId: application.id,
+        eventType: "ai.assessment.completed",
         provider: "mock",
         model: "mock",
         modelVersion: "1",

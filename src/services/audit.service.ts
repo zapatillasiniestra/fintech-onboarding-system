@@ -8,6 +8,7 @@ import {
 
 interface CreateAIAuditData {
   applicationId: number;
+  eventType: string,
   provider: string;
   model: string;
   modelVersion?: string;
@@ -73,6 +74,7 @@ async function verifyAIAuditChain(
   const events: AuditEventToVerify[] = rows.map(
     (row) => ({
       applicationId: row.application_id,
+      eventType: row.event_type,
       provider: row.provider,
       model: row.model,
       modelVersion: row.model_version,

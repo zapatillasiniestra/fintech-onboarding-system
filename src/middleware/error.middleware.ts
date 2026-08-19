@@ -1,37 +1,29 @@
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
 import type { Request, Response, NextFunction } from "express";
+import { AppError } from "../utils/AppError";
 
-function errorHandler(
+export function errorHandler(
   err: unknown,
   _req: Request,
   res: Response,
   _next: NextFunction
 ) {
-  console.error(err);
-
   if (err instanceof ZodError) {
     return res.status(400).json({
-      error: err.issues
+      error: "Validation failed",
+      details: z.treeifyError(err),
     });
   }
 
-  const status =
-    typeof err === "object" &&
-    err !== null &&
-    "status" in err
-      ? (err as { status: number }).status
-      : 500;
+  console.error(err);
 
-  const message =
-    typeof err === "object" &&
-    err !== null &&
-    "message" in err
-      ? (err as { message: string }).message
-      : "internal server error";
+  if (err instanceof AppError) {
+    return res.status(err.status).json({
+      error: err.message,
+    });
+  }
 
-  return res.status(status).json({
-    error: message
+  return res.status(500).json({
+    error: "Internal server error",
   });
 }
-
-export default errorHandler;
