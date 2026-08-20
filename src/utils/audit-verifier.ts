@@ -4,12 +4,12 @@ export interface AuditEventToVerify {
   applicationId: number;
   eventType: string;
   provider: string;
-  model: string;
+  model?: string | null;
   modelVersion?: string | null;
   inputHash: string;
   outputHash: string;
-  decision: "approved" | "rejected" | "manual_review";
-  riskLevel: "low" | "medium" | "high";
+  decision: string;
+  riskLevel?: string | null;
   reasons: string[];
   previousEventHash?: string | null;
   eventHash: string;
@@ -20,7 +20,7 @@ export function verifyAuditEvent(
 ): boolean {
   const expectedOutputHash = sha256({
     decision: event.decision,
-    riskLevel: event.riskLevel,
+    riskLevel: event.riskLevel ?? null,
     reasons: event.reasons
   });
   if (expectedOutputHash !== event.outputHash) {

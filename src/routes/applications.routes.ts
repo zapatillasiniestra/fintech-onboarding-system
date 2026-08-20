@@ -23,13 +23,19 @@ router.get(
 router.get(
   "/:id/ai-audit/verify",
   auth,
-  applicationsController.verifyAIAudit
+  applicationsController.verifyAudit
 );
 
 router.get(
   "/:id/ai-audit",
   auth,
-  applicationsController.getAIAudit
+  applicationsController.getAudit
+);
+
+router.get(
+  "/:id/compliance",
+  auth,
+  applicationsController.getComplianceChecks
 );
 
 router.get("/:id", auth, applicationsController.getApplicationsById);

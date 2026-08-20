@@ -1,20 +1,19 @@
-import type { Decision } from "../../types/application";
-import type { AIRiskLevel } from "../../types/ai-assessment";
+import { AuditEventType } from "../../types/audit";
 
-export interface AIAuditEventInput {
-  applicationId: number;
-  eventType: string;
+export interface AuditEventInput {
+  applicationId?: number;
+  eventType: AuditEventType;
   provider: string;
-  model: string;
+  model?: string;
   modelVersion?: string;
   inputData: Record<string, unknown>;
-  decision: Decision;
-  riskLevel: AIRiskLevel;
+  decision: string;
+  riskLevel?: string;
   reasons: string[];
   previousEventHash?: string;
 }
 
-export interface AIAuditEvent {
+export interface AuditEvent {
   inputHash: string;
   outputHash: string;
   eventHash: string;
@@ -23,7 +22,7 @@ export interface AIAuditEvent {
 }
 
 export interface AuditProvider {
-  createAIAuditEvent(
-    input: AIAuditEventInput
-  ): Promise<AIAuditEvent>;
+  createAuditEvent(
+    input: AuditEventInput
+  ): Promise<AuditEvent>;
 }

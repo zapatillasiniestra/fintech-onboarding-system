@@ -1,19 +1,19 @@
 import { sha256 } from "../../utils/hashing";
 import type {
-  AIAuditEvent,
-  AIAuditEventInput,
+  AuditEvent,
+  AuditEventInput,
   AuditProvider,
 } from "./AuditProvider";
 
 export class LocalAuditProvider implements AuditProvider {
-  async createAIAuditEvent(
-    input: AIAuditEventInput
-  ): Promise<AIAuditEvent> {
+  async createAuditEvent(
+    input: AuditEventInput
+  ): Promise<AuditEvent> {
     const inputHash = sha256(input.inputData);
 
     const outputData = {
       decision: input.decision,
-      riskLevel: input.riskLevel,
+      riskLevel: input.riskLevel ?? null,
       reasons: input.reasons,
     };
 
@@ -23,11 +23,12 @@ export class LocalAuditProvider implements AuditProvider {
       applicationId: input.applicationId,
       eventType: input.eventType,
       provider: input.provider,
-      model: input.model,
+      model: input.model ?? null,
       modelVersion: input.modelVersion ?? null,
       inputHash,
       outputHash,
-      previousEventHash: input.previousEventHash ?? null,
+      previousEventHash:
+        input.previousEventHash ?? null,
     };
 
     const eventHash = sha256(eventData);

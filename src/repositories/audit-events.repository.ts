@@ -1,15 +1,15 @@
 import type { PoolClient } from "pg";
 
-interface CreateAIAuditEventData {
+interface CreateAuditEventData {
   applicationId: number;
   eventType: string;
   provider: string;
-  model: string;
+  model?: string;
   modelVersion?: string;
   inputData: Record<string, unknown>;
   inputHash: string;
   decision: string;
-  riskLevel: string;
+  riskLevel?: string;
   reasons: string[];
   outputHash: string;
   previousEventHash?: string;
@@ -24,7 +24,7 @@ async function findLatestHash(
   const result = await client.query(
     `
     SELECT event_hash
-    FROM ai_audit_events
+    FROM audit_events
     WHERE application_id = $1
     ORDER BY created_at DESC, id DESC
     LIMIT 1
@@ -57,7 +57,7 @@ async function findByApplicationId(
       event_hash,
       hash_algorithm,
       created_at
-    FROM ai_audit_events
+    FROM audit_events
     WHERE application_id = $1
     ORDER BY id ASC
     `,
@@ -69,11 +69,11 @@ async function findByApplicationId(
 
 async function create(
   client: PoolClient,
-  data: CreateAIAuditEventData
+  data: CreateAuditEventData
 ) {
   const result = await client.query(
     `
-    INSERT INTO ai_audit_events (
+    INSERT INTO audit_events (
       application_id,
       event_type,
       provider,

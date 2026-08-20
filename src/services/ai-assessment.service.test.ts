@@ -71,7 +71,7 @@ describe("AI assessment audit chain", () => {
           event_type,
           previous_event_hash,
           event_hash
-        FROM ai_audit_events
+        FROM audit_events
         WHERE application_id = $1
         ORDER BY id ASC
         `,
@@ -97,6 +97,20 @@ describe("AI assessment audit chain", () => {
 
       expect(secondEvent.event_hash)
         .not.toBe(firstEvent.event_hash);
+        
+      expect(auditResult.rows[0].event_type)
+        .toBe("ai.assessment.completed");
+
+      expect(auditResult.rows[1].event_type)
+        .toBe("ai.assessment.completed");
+
+      expect(auditResult.rows[0].previous_event_hash)
+        .toBeNull();
+
+      expect(auditResult.rows[1].previous_event_hash)
+        .toBe(auditResult.rows[0].event_hash);
+
+        expect(auditResult.rows).toHaveLength(2);
 
       await client.query("ROLLBACK");
 

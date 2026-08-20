@@ -1,62 +1,183 @@
 import pool from "../db/db";
-import type { ApplicationStats, ApplicationStatus,IdentityRequest,SortOrder } from "../types/application";
+import type { PoolClient } from "pg";
+import type {
+  ApplicationStats,
+  ApplicationStatus,
+  IdentityRequest,
+  SortOrder,
+} from "../types/application";
 import repository from "../repositories/applications.repository";
 import auditRepository from "../repositories/audit.repository";
-import {addEmailJob} from "../jobs/email.queue";
-import {AppError} from "../utils/AppError";
-import { createIdentityProvider, createAIProvider} from "../providers/ProviderFactory";
+import { addEmailJob } from "../jobs/email.queue";
+import { AppError } from "../utils/AppError";
+import {
+  createIdentityProvider,
+  createAIProvider,
+} from "../providers/ProviderFactory";
 import aiAssessmentRepository from "../repositories/ai-assessment.repository";
 import auditService from "./audit.service";
 import { createComplianceProvider } from "../providers/compliance/ComplianceProviderFactory";
 import complianceRepository from "../repositories/compliance.repository";
 
-async function verifyIdentity(
-    request: IdentityRequest
-  ) {
-  const identityProvider = createIdentityProvider();
-  const verification = await identityProvider.verifyIdentity(request);
+async function verifyIdentity(request: IdentityRequest) {
+  return createIdentityProvider().verifyIdentity(request);
+}
 
-  return verification;
+async function runAIAssessment(
+  fullName: string,
+  email: string,
+  verification: Awaited<ReturnType<typeof verifyIdentity>>
+) {
+  const aiProvider = createAIProvider();
+
+  return aiProvider.assessApplication({
+    fullName,
+    email,
+    verification,
+  });
+}
+
+async function createComplianceAuditStarted(
+  client: PoolClient,
+  applicationId: number,
+  fullName: string,
+  email: string
+) {
+  await auditService.createAuditEvent(client, {
+    applicationId,
+    eventType: "compliance.check.started",
+    provider: process.env.COMPLIANCE_PROVIDER ?? "unknown",
+    model: "none",
+    inputData: {
+      fullName,
+      email,
+    },
+    decision: "pending",
+    riskLevel: "not_applicable",
+    reasons: [],
+  });
+}
+
+async function runComplianceCheck(
+  client: PoolClient,
+  applicationId: number,
+  fullName: string,
+  email: string
+) {
+  const complianceProvider = createComplianceProvider();
+
+  const compliance = await complianceProvider.check({
+    applicationId,
+    fullName,
+    email,
+  });
+
+  await complianceRepository.create(client, {
+    applicationId,
+    provider: compliance.provider,
+    decision: compliance.decision,
+    reasons: compliance.reasons,
+    externalId: compliance.externalId,
+    raw: compliance.raw,
+  });
+
+  await auditService.createAuditEvent(client, {
+    applicationId,
+    eventType: "compliance.check.completed",
+    provider: compliance.provider,
+    model: "none",
+    inputData: {
+      fullName,
+      email,
+    },
+    decision: compliance.decision,
+    riskLevel: "not_applicable",
+    reasons: compliance.reasons,
+  });
+
+  return compliance;
+}
+
+async function createAIAssessmentAudit(
+  client: PoolClient,
+  applicationId: number,
+  fullName: string,
+  email: string,
+  verification: Awaited<ReturnType<typeof verifyIdentity>>,
+  assessment: Awaited<
+    ReturnType<
+      ReturnType<typeof createAIProvider>["assessApplication"]
+    >
+  >
+) {
+  await aiAssessmentRepository.create(client, {
+    applicationId,
+    riskLevel: assessment.riskLevel,
+    decision: assessment.decision,
+    reasons: assessment.reasons,
+    model: "mock",
+  });
+
+  await auditService.createAuditEvent(client, {
+    applicationId,
+    eventType: "ai.assessment.completed",
+    provider: "mock",
+    model: "mock",
+    modelVersion: "1",
+    inputData: {
+      fullName,
+      email,
+      identityVerification: {
+        verified: verification.verified,
+        confidence: verification.confidence,
+        provider: verification.provider,
+        decision: verification.decision,
+        reasons: verification.reasons,
+      },
+    },
+    decision: assessment.decision,
+    riskLevel: assessment.riskLevel,
+    reasons: assessment.reasons,
+  });
 }
 
 async function getApplications(
-    userId: number,
-    page: number = 1,
-    limit: number = 10,
-    status?: ApplicationStatus,
-    search?: string,
-    order?: SortOrder
-  ) {
+  userId: number,
+  page: number = 1,
+  limit: number = 10,
+  status?: ApplicationStatus,
+  search?: string,
+  order?: SortOrder
+) {
   const offset = (page - 1) * limit;
 
-  const result =
-    await repository.getApplications(
-      userId,
-      limit,
-      offset,
-      status as ApplicationStatus,
-      search as string,
-      order as SortOrder);
+  const result = await repository.getApplications(
+    userId,
+    limit,
+    offset,
+    status as ApplicationStatus,
+    search as string,
+    order as SortOrder
+  );
 
   return {
     page,
     limit,
     total: result.total,
-    totalPages: Math.ceil( result.total / limit ),
-    data: result.applications
+    totalPages: Math.ceil(result.total / limit),
+    data: result.applications,
   };
 }
 
 async function getAllApplications() {
-    const applications =
-      await repository.findAll();
+  const applications = await repository.findAll();
 
-    if (!applications) {
-      throw new AppError(
-        "applications not found",
-        404
-      );
-    }
+  if (!applications) {
+    throw new AppError(
+      "applications not found",
+      404
+    );
+  }
 
   return applications;
 }
@@ -78,7 +199,8 @@ async function authorizeApplicationAccess(
   userId: number,
   role: "user" | "admin"
 ) {
-  const application = await repository.findById(applicationId);
+  const application =
+    await repository.findById(applicationId);
 
   if (!application) {
     throw new AppError(
@@ -116,13 +238,16 @@ async function getStats(userId: number) {
     under_review: 0,
     approved: 0,
     rejected: 0,
-    approvalRate: 0
+    approvalRate: 0,
   };
+
   let approved = 0;
   let rejected = 0;
 
   for (const row of application) {
-    stats[row.status as ApplicationStatus] = Number(row.total);
+    stats[row.status as ApplicationStatus] =
+      Number(row.total);
+
     if (row.status === "approved") {
       approved = Number(row.total);
     }
@@ -130,9 +255,10 @@ async function getStats(userId: number) {
     if (row.status === "rejected") {
       rejected = Number(row.total);
     }
+
     if (approved + rejected > 0) {
       stats.approvalRate =
-        approved / (approved + rejected) * 100;
+        (approved / (approved + rejected)) * 100;
     } else {
       stats.approvalRate = 0;
     }
@@ -142,8 +268,7 @@ async function getStats(userId: number) {
 }
 
 async function getRecents() {
-  const result =
-    await repository.getRecents();
+  const result = await repository.getRecents();
 
   if (!result) {
     throw new AppError(
@@ -162,7 +287,7 @@ async function createApplication(
 ) {
   const verification = await verifyIdentity({
     full_name,
-    email
+    email,
   });
 
   if (!verification.verified) {
@@ -171,14 +296,6 @@ async function createApplication(
       400
     );
   }
-
-  const aiProvider = createAIProvider();
-
-  const assessment = await aiProvider.assessApplication({
-    fullName: full_name,
-    email,
-    verification
-  });
 
   const client = await pool.connect();
 
@@ -191,79 +308,55 @@ async function createApplication(
         userId,
         fullName: full_name,
         email,
-        verification
+        verification,
       }
     );
 
-  const complianceProvider=createComplianceProvider();
-  const compliance = await complianceProvider.check({
-    applicationId: application.id,
-    fullName: full_name,
-    email,
-  });
-  await complianceRepository.create(client, {
-    applicationId: application.id,
-    provider: compliance.provider,
-    decision: compliance.decision,
-    reasons: compliance.reasons,
-    externalId: compliance.externalId,
-    raw: compliance.raw,
-  });
-
-  await aiAssessmentRepository.create(
+    await createComplianceAuditStarted(
       client,
-      {
-        applicationId: application.id,
-        riskLevel: assessment.riskLevel,
-        decision: assessment.decision,
-        reasons: assessment.reasons,
-        model: "mock"
-      }
+      application.id,
+      full_name,
+      email
     );
 
-    await auditService.createAIAuditEvent(
+    await runComplianceCheck(
       client,
-      {
-        applicationId: application.id,
-        eventType: "ai.assessment.completed",
-        provider: "mock",
-        model: "mock",
-        modelVersion: "1",
-        inputData: {
-          fullName: full_name,
-          email,
-          identityVerification: {
-            verified: verification.verified,
-            confidence: verification.confidence,
-            provider: verification.provider,
-            decision: verification.decision,
-            reasons: verification.reasons
-          }
-        },
-        decision: assessment.decision,
-        riskLevel: assessment.riskLevel,
-        reasons: assessment.reasons
-      }
+      application.id,
+      full_name,
+      email
+    );
+
+    const assessment = await runAIAssessment(
+      full_name,
+      email,
+      verification
+    );
+
+    await createAIAssessmentAudit(
+      client,
+      application.id,
+      full_name,
+      email,
+      verification,
+      assessment
     );
 
     await client.query("COMMIT");
 
     return application;
-
   } catch (err: unknown) {
     await client.query("ROLLBACK");
     throw err;
-
   } finally {
     client.release();
   }
 }
 
 async function updateStatus(
-    applicationId: number,
-    adminUserId: number,
-    status: ApplicationStatus
-  ) {
+  applicationId: number,
+  adminUserId: number,
+  status: ApplicationStatus
+) {
   const client = await pool.connect();
 
   try {
@@ -282,7 +375,8 @@ async function updateStatus(
       );
     }
 
-    const currentStatus = application.status as ApplicationStatus;
+    const currentStatus =
+      application.status as ApplicationStatus;
 
     if (
       currentStatus === "approved" ||
@@ -295,13 +389,13 @@ async function updateStatus(
     }
 
     const allowedTransitions: Record<
-        ApplicationStatus,
-        ApplicationStatus[]
-      > = {
+      ApplicationStatus,
+      ApplicationStatus[]
+    > = {
       pending: ["under_review"],
       under_review: ["approved", "rejected"],
       approved: [],
-      rejected: []
+      rejected: [],
     };
 
     if (
@@ -321,9 +415,10 @@ async function updateStatus(
       addEmailJob({
         email: application.email,
         fullName: application.full_name,
-        status
+        status,
       });
     }
+
     const updated =
       await repository.updateStatus(
         client,
@@ -341,16 +436,11 @@ async function updateStatus(
     await client.query("COMMIT");
 
     return updated;
-
-  } catch (err: unknown) { 
-
+  } catch (err: unknown) {
     await client.query("ROLLBACK");
     throw err;
-
   } finally {
-
     client.release();
-
   }
 }
 
@@ -363,5 +453,5 @@ export default {
   getStats,
   getRecents,
   createApplication,
-  updateStatus
+  updateStatus,
 };

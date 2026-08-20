@@ -6,7 +6,7 @@ export interface ComplianceCheckInput {
 
 export interface ComplianceCheckResult {
   provider: string;
-  checked: boolean;
+  checked?: boolean;
   decision: "clear" | "flagged" | "manual_review";
   reasons: string[];
   externalId?: string;

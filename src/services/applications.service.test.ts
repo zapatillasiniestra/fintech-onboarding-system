@@ -1,0 +1,129 @@
+import pool from "../db/db";
+import applicationsService from "./applications.service";
+import { verifyAuditEvent } from "../utils/audit-verifier";
+import { MockComplianceProvider } from "../providers/compliance/MockComplianceProvider";
+
+describe("createApplication compliance and audit flow", () => {
+  test("creates compliance and AI audit events in one chain", async () => {
+    const application =
+      await applicationsService.createApplication(
+        4,
+        "Compliance Test User",
+        "compliance-test@example.com"
+      );
+
+    const result = await pool.query(
+      `
+      SELECT
+        event_type,
+        application_id,
+        provider,
+        model,
+        model_version,
+        input_hash,
+        output_hash,
+        previous_event_hash,
+        decision,
+        risk_level,
+        reasons,
+        event_hash
+      FROM audit_events
+      WHERE application_id = $1
+      ORDER BY id ASC
+      `,
+      [application.id]
+    );
+
+    expect(result.rows).toHaveLength(3);
+
+    const started = result.rows[0];
+    const completed = result.rows[1];
+    const ai = result.rows[2];
+
+    expect(started.event_type)
+      .toBe("compliance.check.started");
+
+    expect(completed.event_type)
+      .toBe("compliance.check.completed");
+
+    expect(ai.event_type)
+      .toBe("ai.assessment.completed");
+
+    expect(started.previous_event_hash)
+      .toBeNull();
+
+    expect(completed.previous_event_hash)
+      .toBe(started.event_hash);
+
+    expect(ai.previous_event_hash)
+      .toBe(completed.event_hash);
+
+    const tamperedEvent = {
+      applicationId: completed.application_id,
+      eventType: completed.event_type,
+      provider: completed.provider,
+      model: completed.model ?? undefined,
+      modelVersion: completed.model_version ?? undefined,
+      inputHash: completed.input_hash,
+      outputHash: completed.output_hash,
+      previousEventHash:
+        completed.previous_event_hash ?? undefined,
+      decision: "tampered",
+      riskLevel: completed.risk_level ?? undefined,
+      reasons: completed.reasons,
+      eventHash: completed.event_hash,
+    };
+
+    expect(
+      verifyAuditEvent(tamperedEvent)
+    ).toBe(false);
+
+    await pool.query(
+      "DELETE FROM applications WHERE id = $1",
+      [application.id]
+    );
+  });
+
+  test("rolls back application when compliance provider fails", async () => {
+    process.env.COMPLIANCE_PROVIDER = "mock";
+
+    const originalCheck =
+      MockComplianceProvider.prototype.check;
+
+    MockComplianceProvider.prototype.check = jest
+      .fn()
+      .mockRejectedValue(
+        new Error("Compliance provider unavailable")
+      );
+
+    try {
+      await expect(
+        applicationsService.createApplication(
+          4,
+          "Failure Test User",
+          "failure-test@example.com"
+        )
+      ).rejects.toThrow(
+        "Compliance provider unavailable"
+      );
+
+      const result = await pool.query(
+        `
+        SELECT id
+        FROM applications
+        WHERE email = $1
+        `,
+        ["failure-test@example.com"]
+      );
+
+      expect(result.rows).toHaveLength(0);
+    } finally {
+      MockComplianceProvider.prototype.check =
+        originalCheck;
+    }
+  });
+
+  afterAll(async () => {
+    await pool.end();
+  });
+});

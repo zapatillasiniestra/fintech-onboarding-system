@@ -4,6 +4,7 @@ import {AppError} from "../utils/AppError";
 import { createApplicationSchema, updateStatusSchema } from "../validators/applications.validator";
 import { ApplicationStatus } from "../types/application";
 import auditService from "../services/audit.service";
+import complianceService from "../services/compliance.service";
 import pool from "../db/db";
 
 declare module "express-serve-static-core" {
@@ -183,7 +184,7 @@ async function updateStatus(
   }
 }
 
-async function getAIAudit(
+async function getAudit(
   req: Request,
   res: Response,
   next: NextFunction
@@ -212,7 +213,7 @@ async function getAIAudit(
 
     try {
       const auditEvents =
-        await auditService.getAIAuditEvents(
+        await auditService.getAuditEvents(
           client,
           applicationId
         );
@@ -228,7 +229,52 @@ async function getAIAudit(
   }
 }
 
-async function verifyAIAudit(
+async function getComplianceChecks(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const applicationId = Number(req.params.id);
+
+    if (Number.isNaN(applicationId)) {
+      throw new AppError(
+        "invalid application id",
+        400
+      );
+    }
+
+    await applicationsService.authorizeApplicationAccess(
+      applicationId,
+      req.user.userId,
+      req.user.role
+    );
+
+    const client = await pool.connect();
+
+    try {
+      const complianceChecks =
+        await complianceService.getComplianceChecks(
+          client,
+          applicationId
+        );
+
+      return res.status(200).json(complianceChecks);
+
+    } finally {
+      client.release();
+    }
+
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function verifyAudit(
   req: Request,
   res: Response,
   next: NextFunction
@@ -256,7 +302,7 @@ async function verifyAIAudit(
 
     try {
       const result =
-        await auditService.verifyAIAuditChain(
+        await auditService.verifyAuditChain(
           client,
           applicationId
         );
@@ -280,6 +326,7 @@ export default {
   getRecents,
   createApplication,
   updateStatus,
-  getAIAudit,
-  verifyAIAudit
+  getAudit,
+  getComplianceChecks,
+  verifyAudit
 };

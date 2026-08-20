@@ -7,7 +7,7 @@ describe("verifyAuditEvent", () => {
   async function createTestEvent(): Promise<AuditEventToVerify> {
     const provider = new LocalAuditProvider();
 
-    const generated = await provider.createAIAuditEvent({
+    const generated = await provider.createAuditEvent({
       applicationId: 4,
       eventType: "ai.assessment.completed",
       provider: "mock",

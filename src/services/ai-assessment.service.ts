@@ -25,7 +25,7 @@ export async function assessApplication(
     }
   );
 
-  await auditService.createAIAuditEvent(
+  await auditService.createAuditEvent(
     client,
     {
       applicationId,

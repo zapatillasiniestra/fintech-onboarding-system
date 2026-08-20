@@ -1,29 +1,30 @@
 import type { PoolClient } from "pg";
-import aiAuditEventsRepository from "../repositories/ai-audit-events.repository";
+import auditEventsRepository from "../repositories/audit-events.repository";
 import { createAuditProvider } from "../providers/audit/AuditProviderFactory";
 import {
-  verifyAuditChain,
+  verifyAuditChain as verifyAuditChainUtil,
   type AuditEventToVerify
 } from "../utils/audit-verifier";
+import { AuditEventType } from "../types/audit";
 
-interface CreateAIAuditData {
+interface CreateAuditData {
   applicationId: number;
-  eventType: string,
+  eventType: AuditEventType;
   provider: string;
-  model: string;
+  model?: string;
   modelVersion?: string;
   inputData: Record<string, unknown>;
-  decision: "approved" | "rejected" | "manual_review";
-  riskLevel: "low" | "medium" | "high";
+  decision: string;
+  riskLevel?: string;
   reasons: string[];
 }
 
-async function createAIAuditEvent(
+async function createAuditEvent(
   client: PoolClient,
-  data: CreateAIAuditData
+  data: CreateAuditData
 ) {
   const previousEventHash =
-    await aiAuditEventsRepository.findLatestHash(
+    await auditEventsRepository.findLatestHash(
       client,
       data.applicationId
     );
@@ -31,12 +32,12 @@ async function createAIAuditEvent(
   const auditProvider = createAuditProvider();
 
   const auditEvent =
-    await auditProvider.createAIAuditEvent({
+    await auditProvider.createAuditEvent({
       ...data,
       previousEventHash
     });
 
-  return aiAuditEventsRepository.create(
+  return auditEventsRepository.create(
     client,
     {
       ...data,
@@ -51,22 +52,22 @@ async function createAIAuditEvent(
   );
 }
 
-async function getAIAuditEvents(
+async function getAuditEvents(
   client: PoolClient,
   applicationId: number
 ) {
-  return aiAuditEventsRepository.findByApplicationId(
+  return auditEventsRepository.findByApplicationId(
     client,
     applicationId
   );
 }
 
-async function verifyAIAuditChain(
+async function verifyAuditChain(
   client: PoolClient,
   applicationId: number
 ) {
   const rows =
-    await aiAuditEventsRepository.findByApplicationId(
+    await auditEventsRepository.findByApplicationId(
       client,
       applicationId
     );
@@ -90,13 +91,13 @@ async function verifyAIAuditChain(
   );
 
   return {
-    valid: verifyAuditChain(events),
+    valid: verifyAuditChainUtil(events),
     events: events.length
   };
 }
 
 export default {
-  createAIAuditEvent,
-  getAIAuditEvents,
-  verifyAIAuditChain
+  createAuditEvent,
+  getAuditEvents,
+  verifyAuditChain
 };

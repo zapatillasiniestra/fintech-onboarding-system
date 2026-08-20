@@ -103,7 +103,7 @@ describe("auth routes", () => {
 test("AI audit verification returns valid chain", async () => {
   const provider = new LocalAuditProvider();
 
-  const auditEvent = await provider.createAIAuditEvent({
+  const auditEvent = await provider.createAuditEvent({
     applicationId: 4,
     eventType: "ai.assessment.completed",
     provider: "mock",
@@ -122,7 +122,7 @@ test("AI audit verification returns valid chain", async () => {
 
   const result=await pool.query(
     `
-    INSERT INTO ai_audit_events (
+    INSERT INTO audit_events (
       application_id,
       event_type,
       provider,
@@ -185,7 +185,7 @@ test("AI audit verification returns valid chain", async () => {
     );
 
   await pool.query(
-    `DELETE FROM ai_audit_events WHERE id = $1`,
+    `DELETE FROM audit_events WHERE id = $1`,
     [auditEventId]
   );
   expect(response.status).toBe(200);
