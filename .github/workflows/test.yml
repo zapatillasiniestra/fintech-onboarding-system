@@ -13,6 +13,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      COMPLIANCE_PROVIDER: local
+      IDENTITY_PROVIDER: local
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
