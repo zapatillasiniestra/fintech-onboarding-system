@@ -5,6 +5,7 @@ import { createApplicationSchema, updateStatusSchema } from "../validators/appli
 import { ApplicationStatus } from "../types/application";
 import auditService from "../services/audit.service";
 import complianceService from "../services/compliance.service";
+import identityService from "../services/identity.service";
 import pool from "../db/db";
 
 declare module "express-serve-static-core" {
@@ -274,6 +275,51 @@ async function getComplianceChecks(
   }
 }
 
+async function getIdentityChecks(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const applicationId = Number(req.params.id);
+
+    if (Number.isNaN(applicationId)) {
+      throw new AppError(
+        "invalid application id",
+        400
+      );
+    }
+
+    await applicationsService.authorizeApplicationAccess(
+      applicationId,
+      req.user.userId,
+      req.user.role
+    );
+
+    const client = await pool.connect();
+
+    try {
+      const identityChecks =
+        await identityService.getIdentityChecks(
+          client,
+          applicationId
+        );
+
+      return res.status(200).json(identityChecks);
+
+    } finally {
+      client.release();
+    }
+
+  } catch (err) {
+    return next(err);
+  }
+}
+
 async function verifyAudit(
   req: Request,
   res: Response,
@@ -318,6 +364,39 @@ async function verifyAudit(
   }
 }
 
+async function getDecisionHistory(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const applicationId = Number(req.params.id);
+
+    if (!Number.isInteger(applicationId)) {
+      throw new AppError(
+        "invalid application id",
+        400
+      );
+    }
+
+    const result =
+      await applicationsService.getDecisionHistory(
+        applicationId,
+        req.user.userId,
+        req.user.role
+      );
+
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+    return;
+  }
+}
+
 export default {
   getApplications,
   getAllApplications,
@@ -328,5 +407,7 @@ export default {
   updateStatus,
   getAudit,
   getComplianceChecks,
-  verifyAudit
+  getIdentityChecks,
+  verifyAudit,
+  getDecisionHistory
 };

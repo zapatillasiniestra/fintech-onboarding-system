@@ -1,7 +1,10 @@
-import { IdentityRequest, IdentityVerification } from "../../types/application";
+import type {
+  IdentityRequest,
+  IdentityVerification,
+} from "../../types/application";
 
 export interface IdentityProvider {
   verifyIdentity(
-    request: IdentityRequest
+    input: IdentityRequest
   ): Promise<IdentityVerification>;
 }

@@ -283,10 +283,49 @@ test("admin can access application details", async () => {
   expect(response.body.id).toBe(4);
 });
 
+test("application decision history requires authentication", async () => {
+  const response = await request(app)
+    .get("/applications/75/decision-history");
+
+  expect(response.status).toBe(401);
+});
+
+test("application owner can access decision history", async () => {
+  const token = jwt.sign(
+    {
+      userId: 3,
+      role: "user",
+    },
+    process.env.JWT_SECRET!
+  );
+
+  const response = await request(app)
+    .get("/applications/75/decision-history")
+    .set(
+      "Authorization",
+      `Bearer ${token}`
+    );
+
+  expect(response.status).toBe(200);
+
+  expect(response.body).toMatchObject({
+    applicationId: 75,
+    auditVerification: {
+      valid: true,
+    },
+  });
+
+  expect(response.body.identity).toBeInstanceOf(Array);
+  expect(response.body.compliance).toBeInstanceOf(Array);
+  expect(response.body.aiAssessments).toBeInstanceOf(Array);
+  expect(response.body.auditEvents).toBeInstanceOf(Array);
+});
+
+});
+
   afterAll(async () => {
     await pool.end();
   });
 
-});
 
 export {};

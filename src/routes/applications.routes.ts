@@ -38,6 +38,18 @@ router.get(
   applicationsController.getComplianceChecks
 );
 
+router.get(
+  "/:id/identity",
+  auth,
+  applicationsController.getIdentityChecks
+);
+
+router.get(
+  "/:id/decision-history",
+  auth,
+  applicationsController.getDecisionHistory
+);
+
 router.get("/:id", auth, applicationsController.getApplicationsById);
 
 router.post("/", auth, applicationsController.createApplication);

@@ -14,12 +14,102 @@ import {
   createIdentityProvider,
   createAIProvider,
 } from "../providers/ProviderFactory";
-import aiAssessmentRepository from "../repositories/ai-assessment.repository";
+import aiAssessmentRepository
+  from "../repositories/ai-assessment.repository";
 import auditService from "./audit.service";
-import { createComplianceProvider } from "../providers/compliance/ComplianceProviderFactory";
-import complianceRepository from "../repositories/compliance.repository";
+import { createComplianceProvider }
+  from "../providers/compliance/ComplianceProviderFactory";
+import complianceRepository
+  from "../repositories/compliance.repository";
+import identityVerificationsRepository
+  from "../repositories/identity-verifications.repository";
 
-async function verifyIdentity(request: IdentityRequest) {
+async function getDecisionHistory(
+  applicationId: number,
+  userId: number,
+  role: "user" | "admin"
+) {
+  await authorizeApplicationAccess(
+    applicationId,
+    userId,
+    role
+  );
+
+  const client = await pool.connect();
+
+  try {
+    const [
+      identity,
+      compliance,
+      aiAssessments,
+      auditEvents,
+      auditVerification,
+    ] = await Promise.all([
+      identityVerificationsRepository.findByApplicationId(
+        client,
+        applicationId
+      ),
+
+      complianceRepository.findByApplicationId(
+        client,
+        applicationId
+      ),
+
+      aiAssessmentRepository.findByApplicationId(
+        client,
+        applicationId
+      ),
+
+      auditService.getAuditEvents(
+        client,
+        applicationId
+      ),
+
+      auditService.verifyAuditChain(
+        client,
+        applicationId
+      ),
+    ]);
+
+    return {
+      applicationId,
+      identity,
+      compliance,
+      aiAssessments,
+      auditEvents,
+      auditVerification,
+    };
+  } finally {
+    client.release();
+  }
+}
+
+async function createIdentityVerificationAudit(
+  client: PoolClient,
+  applicationId: number,
+  fullName: string,
+  email: string,
+  verification: Awaited<
+    ReturnType<typeof verifyIdentity>
+  >
+) {
+  await auditService.createAuditEvent(client, {
+    applicationId,
+    eventType: "identity.verification.completed",
+    provider: verification.provider,
+    model: "none",
+    inputData: {
+      fullName,
+      email,
+    },
+    decision: verification.decision ?? "rejected",
+    riskLevel: "not_applicable",
+    reasons: verification.reasons,
+  });
+}
+async function verifyIdentity(
+  request: IdentityRequest
+) {
   return createIdentityProvider().verifyIdentity(request);
 }
 
@@ -312,6 +402,28 @@ async function createApplication(
       }
     );
 
+    await identityVerificationsRepository.create(
+      client,
+      {
+        applicationId: application.id,
+        provider: verification.provider,
+        verified: verification.verified,
+        confidence: verification.confidence,
+        decision: verification.decision,
+        reasons: verification.reasons,
+        externalId: verification.externalId,
+        raw: verification.raw,
+      }
+    );
+
+    await createIdentityVerificationAudit(
+      client,
+      application.id,
+      full_name,
+      email,
+      verification
+    );
+
     await createComplianceAuditStarted(
       client,
       application.id,
@@ -445,6 +557,7 @@ async function updateStatus(
 }
 
 export default {
+  getDecisionHistory,
   verifyIdentity,
   getApplications,
   getAllApplications,

@@ -1,21 +1,26 @@
-import { IdentityRequest, IdentityVerification } from "../../types/application";
-import { IdentityProvider } from "./IdentityProvider";
+import type {
+  IdentityRequest,
+  IdentityVerification,
+} from "../../types/application";
+import type { IdentityProvider } from "./IdentityProvider";
 
 export class MockIdentityProvider
-  implements IdentityProvider {
-
+  implements IdentityProvider
+{
   async verifyIdentity(
-    _request: IdentityRequest
+    input: IdentityRequest
   ): Promise<IdentityVerification> {
-
     return {
-        verified: true,
-        confidence: 0.98,
-        provider: "mock",
-        decision: "approved",
-        externalId: crypto.randomUUID(),
-        reasons: ["Mock verification successful"],
-        raw: {"mock": "raw data"}
+      verified: true,
+      confidence: 0.99,
+      provider: "mock",
+      decision: "approved",
+      reasons: [],
+      externalId: `mock-${input.email}`,
+      raw: {
+        fullName: input.full_name,
+        email: input.email,
+      },
     };
   }
 }

@@ -34,11 +34,15 @@ describe("createApplication compliance and audit flow", () => {
       [application.id]
     );
 
-    expect(result.rows).toHaveLength(3);
+    expect(result.rows).toHaveLength(4);
 
-    const started = result.rows[0];
-    const completed = result.rows[1];
-    const ai = result.rows[2];
+    const identity = result.rows[0];
+    const started = result.rows[1];
+    const completed = result.rows[2];
+    const ai = result.rows[3];
+
+    expect(identity.event_type)
+      .toBe("identity.verification.completed");
 
     expect(started.event_type)
       .toBe("compliance.check.started");
@@ -49,15 +53,18 @@ describe("createApplication compliance and audit flow", () => {
     expect(ai.event_type)
       .toBe("ai.assessment.completed");
 
-    expect(started.previous_event_hash)
+    expect(identity.previous_event_hash)
       .toBeNull();
+
+    expect(started.previous_event_hash)
+      .toBe(identity.event_hash);
 
     expect(completed.previous_event_hash)
       .toBe(started.event_hash);
 
     expect(ai.previous_event_hash)
       .toBe(completed.event_hash);
-
+      
     const tamperedEvent = {
       applicationId: completed.application_id,
       eventType: completed.event_type,
