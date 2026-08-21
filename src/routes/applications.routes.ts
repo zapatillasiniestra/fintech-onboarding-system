@@ -52,6 +52,12 @@ router.get(
 
 router.get("/:id", auth, applicationsController.getApplicationsById);
 
+router.get(
+  "/:id/onboarding",
+  auth,
+  applicationsController.getOnboarding
+);
+
 router.post("/", auth, applicationsController.createApplication);
 
 router.patch(

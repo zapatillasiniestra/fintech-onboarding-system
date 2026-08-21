@@ -397,6 +397,39 @@ async function getDecisionHistory(
   }
 }
 
+async function getOnboarding(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const applicationId = Number(req.params.id);
+
+    if (!Number.isInteger(applicationId)) {
+      throw new AppError(
+        "invalid application id",
+        400
+      );
+    }
+
+    const result =
+      await applicationsService.getOnboarding(
+        applicationId,
+        req.user.userId,
+        req.user.role
+      );
+
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+    return;
+  }
+}
+
 export default {
   getApplications,
   getAllApplications,
@@ -409,5 +442,6 @@ export default {
   getComplianceChecks,
   getIdentityChecks,
   verifyAudit,
-  getDecisionHistory
+  getDecisionHistory,
+  getOnboarding,
 };

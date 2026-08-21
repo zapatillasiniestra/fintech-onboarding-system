@@ -446,6 +446,52 @@ const options = {
           },
         },
       },
+      "/applications/onboarding": {
+        post: {
+          tags: ["Applications"],
+          summary: "Run complete onboarding workflow",
+          description:
+            "Runs identity verification, compliance checks, AI assessment and audit verification, returning a normalized onboarding result.",
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["full_name", "email"],
+                  properties: {
+                    full_name: {
+                      type: "string",
+                      example: "Test User",
+                    },
+                    email: {
+                      type: "string",
+                      format: "email",
+                      example: "test@example.com",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            201: {
+              description: "Onboarding completed",
+            },
+            400: {
+              description: "Invalid onboarding request",
+            },
+            401: {
+              description: "Authentication required",
+            },
+          },
+        },
+      },
     },
   },
 

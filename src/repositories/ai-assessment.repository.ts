@@ -53,7 +53,15 @@ async function findByApplicationId(
     [applicationId]
   );
 
-  return result.rows;
+  return result.rows.map((row) => ({
+    id: row.id,
+    applicationId: row.application_id,
+    riskLevel: row.risk_level,
+    decision: row.decision,
+    reasons: row.reasons,
+    model: row.model,
+    createdAt: row.created_at,
+  }));
 }
 
 export default {

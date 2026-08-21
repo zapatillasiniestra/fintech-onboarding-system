@@ -24,6 +24,53 @@ import complianceRepository
 import identityVerificationsRepository
   from "../repositories/identity-verifications.repository";
 
+async function getOnboarding(
+  applicationId: number,
+  userId: number,
+  role: "user" | "admin"
+) {
+  await authorizeApplicationAccess(
+    applicationId,
+    userId,
+    role
+  );
+
+  const history = await getDecisionHistory(
+    applicationId,
+    userId,
+    role
+  );
+
+  return {
+    applicationId,
+    status:
+      history.aiAssessments[0]?.decision ?? "pending",
+
+    identity: {
+      verified:
+        history.identity[0]?.verified ?? false,
+      provider:
+        history.identity[0]?.provider ?? null,
+    },
+
+    compliance: {
+      decision:
+        history.compliance[0]?.decision ?? null,
+      provider:
+        history.compliance[0]?.provider ?? null,
+    },
+
+    aiAssessment: {
+      decision:
+        history.aiAssessments[0]?.decision ?? null,
+      riskLevel:
+        history.aiAssessments[0]?.riskLevel ?? null,
+    },
+
+    audit: history.auditVerification,
+  };
+}
+
 async function getDecisionHistory(
   applicationId: number,
   userId: number,
@@ -557,6 +604,7 @@ async function updateStatus(
 }
 
 export default {
+  getOnboarding,
   getDecisionHistory,
   verifyIdentity,
   getApplications,
