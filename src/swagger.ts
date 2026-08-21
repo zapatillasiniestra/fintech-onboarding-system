@@ -419,6 +419,33 @@ const options = {
           },
         },
       },
+      "/health": {
+        get: {
+          tags: ["System"],
+          summary: "Check service health",
+          description:
+            "checks application availability and database connectivity",
+          responses: {
+            200: {
+              description: "Service is healthy",
+              content: {
+                "application/json": {
+                  example: {
+                    status: "ok",
+                    database: "connected",
+                    uptime: 123.45,
+                    timestamp: "2026-08-21T16:40:00.000Z",
+                    version: "1.0.0",
+                  },
+                },
+              },
+            },
+            500: {
+              description: "Service or database unavailable",
+            },
+          },
+        },
+      },
     },
   },
 
