@@ -1,6 +1,7 @@
 import { createIdentityProvider } from "./IdentityProviderFactory";
 import { LocalIdentityProvider } from "./LocalIdentityProvider";
 import { MockIdentityProvider } from "./MockIdentityProvider";
+import { SumsubProvider } from "./SumsubProvider";
 
 describe("IdentityProviderFactory", () => {
   const originalProvider =
@@ -43,4 +44,13 @@ describe("IdentityProviderFactory", () => {
         "Unsupported identity provider: invalid"
       );
   });
+
+  test("creates Sumsub provider when configured", () => {
+    process.env.IDENTITY_PROVIDER = "sumsub";
+
+    const provider = createIdentityProvider();
+
+    expect(provider).toBeInstanceOf(SumsubProvider);
+  });
+
 });

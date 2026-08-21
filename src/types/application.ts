@@ -31,7 +31,7 @@ export interface IdentityVerification {
   confidence: number;
   provider: string;
   decision?: Decision;
-  externalId: string;
+  externalId: string | undefined;
   reasons: string[];
   raw: Record<string, unknown>;
 }
