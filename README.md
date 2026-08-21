@@ -1,13 +1,14 @@
 # Nahuela
 
-Open-source infrastructure for auditable, provider-agnostic
-AI-powered onboarding and regulated decision systems.
+Open-source infrastructure for auditable, provider-agnostic AI-powered onboarding and regulated decision systems.
+
+Nahuela provides a reusable backend foundation for identity verification, document verification, compliance checks, AI assessment, and tamper-evident audit trails.
 
 ---
 
 ## Architecture
 
-The application uses a layered backend design:
+Nahuela uses a layered backend architecture with pluggable providers:
 
 ```text
 Client
@@ -21,25 +22,36 @@ Services
 Repositories
   ↓
 PostgreSQL
+
+Providers
+  ├── Identity
+  ├── Documents
+  ├── Compliance
+  └── AI
+
+Audit Events
+  ↓
+SHA-256 hash chain
+  ↓
+Verification
 ```
 
 ---
 
 ## Core Features
 
-* JWT authentication & refresh tokens
-* RBAC
+* JWT authentication and RBAC
+* Identity, document, compliance verification with pluggable providers
+* AI-powered risk assessment
+* Tamper-evident audit events with SHA-256 hash chaining
+* End-to-end decision history and audit verification
 * Controlled onboarding status transitions
-* Identity verification
+* REST APIs with Swagger/OpenAPI documentation
+* Zod request validation
 * Search, filtering, sorting, and pagination
-* Audit logging
-* Zod validation
-* Swagger/OpenAPI documentation
-* Health check endpoint
-* Background email queue
-* Automated tests
-* AI-assisted risk assessment
-* Persisted AI assessments
+* Health and database connectivity checks
+* Automated unit and integration tests
+* GitHub Actions CI
   
 ---
 
@@ -51,9 +63,9 @@ PostgreSQL
 * PostgreSQL
 * Zod
 * Jest
-* Swagger
-* Docker
+* Swagger/OpenAPI
 * GitHub Actions
+* Docker
 
 ---
 
@@ -85,6 +97,12 @@ Swagger documentation:
 http://localhost:3000/docs
 ```
 
+Health checkpoint:
+
+```text
+http://localhost:3000/health
+```
+
 ---
 
 ## Testing
@@ -109,16 +127,20 @@ The project is structured so that unit and integration tests can run against the
 
 ```text
 src/
- ├── controllers/
- ├── services/
- ├── repositories/
- ├── providers/
- ├── middleware/
- ├── validators/
- ├── routes/
- ├── db/
- ├── jobs/
- ├── types/
- ├── utils/
- └── tests/
+├── controllers/
+├── services/
+├── repositories/
+├── providers/
+│   ├── identity/
+│   ├── document/
+│   ├── compliance/
+│   └── audit/
+├── middleware/
+├── validators/
+├── routes/
+├── db/
+├── jobs/
+├── types/
+├── utils/
+└── tests/
 ```
