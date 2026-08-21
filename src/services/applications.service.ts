@@ -23,6 +23,7 @@ import complianceRepository
   from "../repositories/compliance.repository";
 import identityVerificationsRepository
   from "../repositories/identity-verifications.repository";
+import documentsRepository from "../repositories/documents.repository";
 
 async function getOnboarding(
   applicationId: number,
@@ -85,14 +86,20 @@ async function getDecisionHistory(
   const client = await pool.connect();
 
   try {
-    const [
+  const [
       identity,
+      documents,
       compliance,
       aiAssessments,
       auditEvents,
       auditVerification,
     ] = await Promise.all([
       identityVerificationsRepository.findByApplicationId(
+        client,
+        applicationId
+      ),
+
+      documentsRepository.findByApplicationId(
         client,
         applicationId
       ),
@@ -117,10 +124,10 @@ async function getDecisionHistory(
         applicationId
       ),
     ]);
-
     return {
       applicationId,
       identity,
+      documents,
       compliance,
       aiAssessments,
       auditEvents,

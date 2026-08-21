@@ -2,6 +2,7 @@ import { Router } from "express";
 import auth from "../middleware/auth.middleware";
 import adminOnly from "../middleware/admin.middleware";
 import applicationsController from "../controllers/applications.controller";
+import documentsController from "../controllers/documents.controller";
 
 const router = Router();
 
@@ -56,6 +57,19 @@ router.get(
   "/:id/onboarding",
   auth,
   applicationsController.getOnboarding
+);
+
+
+router.get(
+  "/:id/documents",
+  auth,
+  documentsController.getDocuments
+);
+
+router.post(
+  "/:id/documents",
+  auth,
+  documentsController.verifyDocument
 );
 
 router.post("/", auth, applicationsController.createApplication);

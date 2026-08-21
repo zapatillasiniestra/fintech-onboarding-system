@@ -10,7 +10,7 @@
     "test": "jest",
     "migrate": "node-pg-migrate up",
     "migrate:down": "node-pg-migrate down",
-    "migrate:create": "node-pg-migrate create"
+    "migrate:create": "node-pg-migrate create --migration-file-language ts"
   },
   "keywords": [],
   "author": "",
