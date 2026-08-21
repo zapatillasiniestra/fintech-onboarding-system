@@ -3,6 +3,7 @@ import swaggerJsdoc from "swagger-jsdoc";
 const options = {
   definition: {
     openapi: "3.0.0",
+
     info: {
       title: "Nahuela",
       version: "1.0.0",
@@ -73,6 +74,124 @@ const options = {
             },
             401: {
               description: "Authentication required",
+            },
+          },
+        },
+      },
+
+      "/applications/{id}/identity": {
+        get: {
+          tags: ["Applications"],
+          summary: "Get identity verification results",
+          description:
+            "Returns identity verification records for an application.",
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              description: "Application ID",
+              schema: {
+                type: "integer",
+              },
+            },
+          ],
+          responses: {
+            200: {
+              description: "Identity verification results",
+              content: {
+                "application/json": {
+                  example: [
+                    {
+                      id: 8,
+                      application_id: 75,
+                      provider: "mock",
+                      verified: true,
+                      confidence: "0.99",
+                      decision: "approved",
+                      reasons: [],
+                      external_id: "mock-123",
+                      created_at:
+                        "2026-08-20T17:52:55.832Z",
+                    },
+                  ],
+                },
+              },
+            },
+            400: {
+              description: "Invalid application ID",
+            },
+            401: {
+              description: "Authentication required",
+            },
+            403: {
+              description: "Forbidden",
+            },
+            404: {
+              description: "Application not found",
+            },
+          },
+        },
+      },
+
+      "/applications/{id}/compliance": {
+        get: {
+          tags: ["Applications"],
+          summary: "Get compliance check results",
+          description:
+            "Returns compliance checks performed for an application.",
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              description: "Application ID",
+              schema: {
+                type: "integer",
+              },
+            },
+          ],
+          responses: {
+            200: {
+              description: "Compliance check results",
+              content: {
+                "application/json": {
+                  example: [
+                    {
+                      id: 19,
+                      application_id: 75,
+                      provider: "local",
+                      decision: "clear",
+                      reasons: [],
+                      external_id: "local-75",
+                      created_at:
+                        "2026-08-20T17:52:55.832Z",
+                    },
+                  ],
+                },
+              },
+            },
+            400: {
+              description: "Invalid application ID",
+            },
+            401: {
+              description: "Authentication required",
+            },
+            403: {
+              description: "Forbidden",
+            },
+            404: {
+              description: "Application not found",
             },
           },
         },
@@ -180,10 +299,12 @@ const options = {
         },
       },
 
-      "/applications/{id}/ai-audit/verify": {
+      "/applications/{id}/ai-audit": {
         get: {
           tags: ["Audit"],
-          summary: "Verify the application's audit chain",
+          summary: "Get application audit events",
+          description:
+            "Returns the complete audit event chain for an application.",
           security: [
             {
               bearerAuth: [],
@@ -194,6 +315,7 @@ const options = {
               name: "id",
               in: "path",
               required: true,
+              description: "Application ID",
               schema: {
                 type: "integer",
               },
@@ -201,7 +323,78 @@ const options = {
           ],
           responses: {
             200: {
-              description: "Audit chain verification result",
+              description: "Audit events",
+              content: {
+                "application/json": {
+                  example: [
+                    {
+                      id: 185,
+                      application_id: 75,
+                      event_type:
+                        "identity.verification.completed",
+                      provider: "mock",
+                      model: "none",
+                      model_version: null,
+                      input_hash:
+                        "2f47e16883678ac7560a7e76414739bed0d177877db57eef2e37281b427967d8",
+                      decision: "approved",
+                      risk_level: "not_applicable",
+                      reasons: [],
+                      output_hash:
+                        "ace9ef5130af6b4d3e3ad1b01f1b9319fd5a4766bda700c6feff0cbb41f2dac6",
+                      previous_event_hash: null,
+                      event_hash:
+                        "c3180539ab34926c0daed707962e3511a1b29921ce106407b6fd094251356171",
+                      hash_algorithm: "SHA-256",
+                      created_at:
+                        "2026-08-20T17:52:55.832Z",
+                    },
+                  ],
+                },
+              },
+            },
+            400: {
+              description: "Invalid application ID",
+            },
+            401: {
+              description: "Authentication required",
+            },
+            403: {
+              description: "Forbidden",
+            },
+            404: {
+              description: "Application not found",
+            },
+          },
+        },
+      },
+
+      "/applications/{id}/ai-audit/verify": {
+        get: {
+          tags: ["Audit"],
+          summary: "Verify the application's audit chain",
+          description:
+            "Cryptographically verifies the integrity and chaining of all audit events.",
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              description: "Application ID",
+              schema: {
+                type: "integer",
+              },
+            },
+          ],
+          responses: {
+            200: {
+              description:
+                "Audit chain verification result",
               content: {
                 "application/json": {
                   example: {
