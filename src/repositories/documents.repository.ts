@@ -110,7 +110,27 @@ async function findByApplicationId(
   }));
 }
 
+async function findByApplicationAndHash(
+  client: PoolClient,
+  applicationId: number,
+  fileHash: string
+) {
+  const { rows } = await client.query(
+    `
+      SELECT id
+      FROM documents
+      WHERE application_id = $1
+        AND file_hash = $2
+      LIMIT 1
+    `,
+    [applicationId, fileHash]
+  );
+
+  return rows[0] ?? null;
+}
+
 export default {
   create,
   findByApplicationId,
+  findByApplicationAndHash
 };
