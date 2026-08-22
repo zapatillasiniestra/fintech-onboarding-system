@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiFetch } from "../api";
+import DocumentVerificationForm from "../components/DocumentVerificationForm";
 
 interface DecisionHistory {
   applicationId: number;
@@ -15,14 +16,47 @@ interface DecisionHistory {
   };
 }
 
+interface OnboardingDecision {
+  applicationId: number;
+  status: string;
+  identity: {
+    verified: boolean;
+    provider: string;
+  };
+  compliance: {
+    decision: string;
+    provider: string;
+  };
+  aiAssessment: {
+    decision: string;
+    riskLevel: string | null;
+  };
+  audit: {
+    valid: boolean;
+    events: number;
+  };
+}
+
 export default function ApplicationPage() {
   const { id } = useParams();
 
-  const [data, setData] = useState<DecisionHistory | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [data, setData] =
+    useState<DecisionHistory | null>(null);
 
-  useEffect(() => {
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+const [loadingOnboarding, setLoadingOnboarding] =
+  useState(false);
+
+const [onboardingDecision, setOnboardingDecision] =
+  useState<OnboardingDecision | null>(null);
+
+  useState(false);
+    useEffect(() => {
     async function load() {
       try {
         const result = await apiFetch(
@@ -44,26 +78,63 @@ export default function ApplicationPage() {
     load();
   }, [id]);
 
+    async function getOnboardingDecision() {
+    if (!id) return;
+
+    setLoadingOnboarding(true);
+    setError("");
+
+    try {
+        const result = await apiFetch(
+        `/applications/${id}/onboarding`
+        );
+
+        setOnboardingDecision(result);
+    } catch (error) {
+        setError(
+        error instanceof Error
+            ? error.message
+            : "Failed to load onboarding decision"
+        );
+    } finally {
+        setLoadingOnboarding(false);
+    }
+    }
+
   if (loading) {
-    return <main className="content">Loading...</main>;
+    return (
+      <main className="content">
+        Loading...
+      </main>
+    );
   }
 
   if (error) {
     return (
       <main className="content">
-        <div className="error">{error}</div>
+        <div className="error">
+          {error}
+        </div>
       </main>
     );
   }
 
   if (!data) return null;
 
-  const identityVerified = data.identity.length > 0;
-  const documentsVerified = data.documents.length > 0;
-  const complianceClear = data.compliance.length > 0;
-  const aiCompleted = data.aiAssessments.length > 0;
+  const identityVerified =
+    data.identity.length > 0;
 
-  const aiAssessment = data.aiAssessments[0];
+  const documentsVerified =
+    data.documents.length > 0;
+
+  const complianceClear =
+    data.compliance.length > 0;
+
+  const aiCompleted =
+    data.aiAssessments.length > 0;
+
+  const aiAssessment =
+    data.aiAssessments[0];
 
   return (
     <main className="dashboard">
@@ -88,17 +159,106 @@ export default function ApplicationPage() {
             </h1>
           </div>
 
-          <div className="decision-badge">
-            {aiAssessment?.decision === "approved"
-              ? "APPROVED"
-              : "PENDING"}
+          <div className="application-actions">
+
+            <div className="decision-badge">
+              {aiAssessment?.decision === "approved"
+                ? "APPROVED"
+                : "PENDING"}
+            </div>
+
+        <button
+            className="primary-button"
+            onClick={getOnboardingDecision}
+            disabled={loadingOnboarding}
+            >
+            {loadingOnboarding
+                ? "Loading..."
+                : "View onboarding decision"}
+        </button>
+
           </div>
         </div>
 
+{onboardingDecision && (
+  <section className="panel onboarding-result">
+    <div className="panel-heading">
+      <div>
+        <h2>Final onboarding decision</h2>
+        <p>
+          Consolidated result from the onboarding checks.
+        </p>
+      </div>
+
+      <span
+        className={
+          onboardingDecision.status === "approved"
+            ? "decision-badge"
+            : "decision-badge decision-rejected"
+        }
+      >
+        {onboardingDecision.status.toUpperCase()}
+      </span>
+    </div>
+
+    <div className="decision-grid">
+
+      <div>
+        <span>Identity</span>
+        <strong>
+          {onboardingDecision.identity.verified
+            ? "✓ Verified"
+            : "✕ Not verified"}
+        </strong>
+        <small>
+          Provider:{" "}
+          {onboardingDecision.identity.provider}
+        </small>
+      </div>
+
+      <div>
+        <span>Compliance</span>
+        <strong>
+          {onboardingDecision.compliance.decision}
+        </strong>
+        <small>
+          Provider:{" "}
+          {onboardingDecision.compliance.provider}
+        </small>
+      </div>
+
+      <div>
+        <span>AI Assessment</span>
+        <strong>
+          {onboardingDecision.aiAssessment.decision}
+        </strong>
+        <small>
+          Risk:{" "}
+          {onboardingDecision.aiAssessment.riskLevel ??
+            "Not assessed"}
+        </small>
+      </div>
+
+      <div>
+        <span>Audit Integrity</span>
+        <strong>
+          {onboardingDecision.audit.valid
+            ? "✓ Valid"
+            : "✕ Invalid"}
+        </strong>
+        <small>
+          {onboardingDecision.audit.events} audit events
+        </small>
+      </div>
+
+    </div>
+  </section>
+)}
         <div className="cards">
 
           <div className="card">
             <span>Identity</span>
+
             <strong>
               {identityVerified
                 ? "✓ Verified"
@@ -108,6 +268,7 @@ export default function ApplicationPage() {
 
           <div className="card">
             <span>Documents</span>
+
             <strong>
               {documentsVerified
                 ? "✓ Verified"
@@ -117,6 +278,7 @@ export default function ApplicationPage() {
 
           <div className="card">
             <span>Compliance</span>
+
             <strong>
               {complianceClear
                 ? "✓ Clear"
@@ -126,6 +288,7 @@ export default function ApplicationPage() {
 
           <div className="card">
             <span>AI Assessment</span>
+
             <strong>
               {aiCompleted
                 ? `✓ ${aiAssessment?.decision}`
@@ -141,6 +304,7 @@ export default function ApplicationPage() {
 
           <div className="card">
             <span>Audit Chain</span>
+
             <strong>
               {data.auditVerification.valid
                 ? "✓ Valid"
@@ -150,6 +314,7 @@ export default function ApplicationPage() {
 
           <div className="card">
             <span>Audit Events</span>
+
             <strong>
               {data.auditVerification.events}
             </strong>
@@ -157,16 +322,26 @@ export default function ApplicationPage() {
 
         </div>
 
-        {documentsVerified && (
+        {documentsVerified ? (
+
           <section className="panel">
 
-            <h2>Document verification</h2>
+            <div className="panel-heading">
+              <div>
+                <h2>Documents</h2>
+
+                <p>
+                  Verified identity documents.
+                </p>
+              </div>
+            </div>
 
             {data.documents.map((document) => (
               <div
                 className="document-row"
                 key={document.id}
               >
+
                 <div>
                   <strong>
                     {document.documentType}
@@ -188,10 +363,21 @@ export default function ApplicationPage() {
                     Provider: {document.provider}
                   </small>
                 </div>
+
               </div>
             ))}
 
           </section>
+
+        ) : (
+
+          <DocumentVerificationForm
+            applicationId={data.applicationId}
+            onVerified={() =>
+              window.location.reload()
+            }
+          />
+
         )}
 
         <section className="panel">
@@ -203,6 +389,7 @@ export default function ApplicationPage() {
               className="timeline-item"
               key={event.id}
             >
+
               <div>
                 <strong>
                   {event.event_type}
@@ -218,6 +405,7 @@ export default function ApplicationPage() {
               <span className="timeline-decision">
                 {event.decision}
               </span>
+
             </div>
           ))}
 

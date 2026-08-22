@@ -92,7 +92,7 @@ a {
 }
 
 .page-header h1 {
-  margin: 0 0 6px;
+  margin: 0 0 24px;
 }
 
 .page-header p {
@@ -333,4 +333,144 @@ a {
   border-radius: 7px;
   background: #17181a;
   color: white;
+}
+
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.panel-heading h2 {
+  margin: 0 0 6px;
+}
+
+.panel-heading p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.document-upload {
+  margin-bottom: 24px;
+}
+
+.document-upload label:not(.file-dropzone) {
+  display: block;
+  margin: 18px 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.document-upload select {
+  width: 100%;
+  max-width: 400px;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: white;
+}
+
+.file-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  max-width: 600px;
+  margin-top: 8px;
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  background: #fafafa;
+  cursor: pointer;
+  text-align: center;
+}
+
+.file-dropzone:hover {
+  background: #f3f4f6;
+}
+
+.file-dropzone input {
+  display: none;
+}
+
+.file-dropzone strong {
+  display: block;
+}
+
+.file-dropzone small {
+  display: block;
+  margin-top: 6px;
+  color: #6b7280;
+}
+
+.document-upload button {
+  margin-top: 20px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 7px;
+  background: #17181a;
+  color: white;
+}
+
+.document-upload button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.application-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.primary-button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 7px;
+  background: #17181a;
+  color: white;
+  font-weight: 600;
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.onboarding-result {
+  margin-top: 24px;
+}
+
+.decision-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.decision-grid > div {
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.decision-grid span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.decision-grid strong {
+  display: block;
+  text-transform: capitalize;
+}
+
+.decision-grid small {
+  display: block;
+  margin-top: 6px;
+  color: #6b7280;
+}
+
+.decision-rejected {
+  background: #fee2e2;
+  color: #991b1b;
 }
